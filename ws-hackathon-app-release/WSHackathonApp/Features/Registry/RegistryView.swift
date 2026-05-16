@@ -12,76 +12,31 @@ enum RegistryRoute: Hashable {
 }
 
 struct RegistryView: View {
-
     @StateObject private var viewModel = RegistryViewModel()
-
     @EnvironmentObject var registryRepo: RegistryRepository
     @EnvironmentObject var cartRepo: CartRepository
     @EnvironmentObject var tabBarVM: WSTabBarViewModel
-
+    
     private let rowInsets = EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20)
-
+    
     var body: some View {
         NavigationStack(path: $tabBarVM.registryPath) {
-            
-            ZStack {
-                Color(.systemGray6)
-                    .ignoresSafeArea()
-                
-                ScrollView {
-                    VStack(spacing: 0) {
-                        
-                        // MARK: - Header Image
-                        GeometryReader { geometry in
-                            Image(AppImages.Registry.header)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: geometry.size.width, height: 200)
-                                .clipped()
-                        }
-                        .frame(height: 200)
-                        
-                        // MARK: - Content
-                        VStack(spacing: 16) {
-                            
-                            if viewModel.hasRegistry {
-                                
-                                registryHeader
-                                
-                                // MARK: - AI Gift Finder Button
-                                aiGiftFinderButton
-                                
-                                // MARK: - Budget Progress
-                                if viewModel.hasBudget {
-                                    budgetProgressView
-                                }
-                                
-                                if viewModel.hasItems {
-                                    registryItemsList
-                                } else {
-                                    emptyItemsView
-                                }
-                                
-                            } else {
-                                registryCard
-                                instructionCard
-                            }
-//             Group {
-//                 if viewModel.hasRegistry {
-//                     registryContent
-//                 } else {
-//                     noRegistryContent
-//                 }
-//             }
-//             .frame(maxWidth: .infinity, maxHeight: .infinity)
-//             .wsAppBackground()
-//             .navigationTitle(viewModel.hasRegistry ? viewModel.displayTitle : AppStrings.Registry.title)
-//             .navigationBarTitleDisplayMode(.large)
-//             .toolbar {
-//                 if viewModel.hasRegistry {
-//                     ToolbarItem(placement: .topBarTrailing) {
-//                         Button("Delete", role: .destructive) {
-//                             viewModel.deleteRegistry(using: registryRepo)
+            Group {
+                if viewModel.hasRegistry {
+                    registryContent
+                } else {
+                    noRegistryContent
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .wsAppBackground()
+            .navigationTitle(viewModel.hasRegistry ? viewModel.displayTitle : AppStrings.Registry.title)
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                if viewModel.hasRegistry {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Delete", role: .destructive) {
+                            viewModel.deleteRegistry(using: registryRepo)
                         }
                         .font(WSFont.body(15))
                     }
@@ -91,14 +46,10 @@ struct RegistryView: View {
                 switch route {
                 case .create:
                     CreateRegistryView()
-                    
                 case .success:
                     RegistrySuccessView()
-                    
                 case .smartRegistry:
                     SmartRegistryView()
-//                 case .create: CreateRegistryView()
-//                 case .success: RegistrySuccessView()
                 }
             }
         }
@@ -106,11 +57,120 @@ struct RegistryView: View {
             viewModel.bind(repository: registryRepo)
         }
     }
+}
 
 // MARK: - Components
 private extension RegistryView {
     
-    // MARK: - AI Gift Finder Button
+    @ViewBuilder
+    var registryContent: some View {
+        VStack(spacing: 0) {
+            // MARK: - Header with AI Button and Budget
+            VStack(spacing: 16) {
+                aiGiftFinderButton
+                
+                if viewModel.hasBudget {
+                    budgetProgressView
+                }
+                
+                HStack {
+                    Label(viewModel.displayDate, systemImage: "calendar")
+                        .font(WSFont.body(13))
+                        .foregroundStyle(Color.wsTextSecondary)
+                    Spacer()
+                    Text("\(viewModel.items.count) Items")
+                        .font(WSFont.caption(12))
+                        .foregroundStyle(Color.wsAction)
+                }
+                .padding(.horizontal, 20)
+            }
+            .padding(.vertical, 16)
+            
+            if viewModel.hasItems {
+                registryItemsList
+            } else {
+                emptyItemsView
+            }
+        }
+    }
+    
+    var registryItemsList: some View {
+        List {
+            Section {
+                ForEach(viewModel.items) { item in
+                    RegistryItemRow(
+                        viewModel: RegistryItemRowViewModel(
+                            item: item,
+                            registryRepo: registryRepo,
+                            cartRepo: cartRepo,
+                            tabbarVM: tabBarVM
+                        )
+                    )
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .listRowBackground(WSCardBackground(cornerRadius: 12))
+                    .listRowSeparatorTint(Color.wsNavy.opacity(0.06))
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            withAnimation(WSAnimation.spring) {
+                                registryRepo.removeItem(item.id)
+                            }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+    }
+    
+    var emptyItemsView: some View {
+        WSEmptyState(
+            title: "Your Registry is Empty",
+            systemImage: "gift",
+            message: "Browse our collection and tap the gift icon to add favorites.",
+            buttonTitle: "Browse Collection",
+            action: { tabBarVM.selectTab(.home) }
+        )
+    }
+    
+    var noRegistryContent: some View {
+        List {
+            Section {
+                WSRegistryHeroCard {
+                    tabBarVM.registryPath.append(.create)
+                }
+                .listRowInsets(rowInsets)
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+            }
+
+            Section {
+                ForEach(Array(viewModel.instructions.enumerated()), id: \.element.id) { index, item in
+                    RegistryReasonCard(
+                        number: index + 1,
+                        title: item.title,
+                        description: item.description
+                    )
+                    .listRowInsets(rowInsets)
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                }
+            } header: {
+                WSSectionHeader(
+                    title: "Top Reasons to Register",
+                    subtitle: "Everything you need for your special day"
+                )
+                .textCase(nil)
+                .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
+            }
+        }
+        .listStyle(.plain)
+        .listSectionSpacing(12)
+        .scrollContentBackground(.hidden)
+        .background(Color.clear)
+    }
     
     var aiGiftFinderButton: some View {
         Button {
@@ -164,8 +224,6 @@ private extension RegistryView {
         .padding(.horizontal, 16)
     }
     
-    // MARK: - Budget Progress
-    
     var budgetProgressView: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
@@ -183,7 +241,6 @@ private extension RegistryView {
                 }
             }
             
-            // Progress Bar
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 6)
@@ -200,7 +257,7 @@ private extension RegistryView {
                                 endPoint: .trailing
                             )
                         )
-                        .frame(width: geometry.size.width * viewModel.budgetProgress, height: 10)
+                        .frame(width: max(0, min(geometry.size.width, geometry.size.width * viewModel.budgetProgress)), height: 10)
                         .animation(.spring(response: 0.5), value: viewModel.budgetProgress)
                 }
             }
@@ -224,106 +281,6 @@ private extension RegistryView {
         .background(Color.white)
         .cornerRadius(12)
         .padding(.horizontal, 16)
-    }
-    
-    var registryCard: some View {
-        VStack(spacing: 0) {
-            
-            Button {
-                tabBarVM.registryPath.append(.create)
-            } label: {
-                createRegistryButton
-                    .contentShape(Rectangle())
-//     @ViewBuilder
-//     private var registryContent: some View {
-//         if viewModel.hasItems {
-//             List {
-//                 Section {
-//                     ForEach(viewModel.items) { item in
-//                         RegistryItemRow(
-//                             viewModel: RegistryItemRowViewModel(
-//                                 item: item,
-//                                 registryRepo: registryRepo,
-//                                 cartRepo: cartRepo,
-//                                 tabbarVM: tabBarVM
-//                             )
-//                         )
-//                         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-//                         .listRowBackground(WSCardBackground(cornerRadius: 12))
-//                         .listRowSeparatorTint(Color.wsNavy.opacity(0.06))
-//                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-//                             Button(role: .destructive) {
-//                                 withAnimation(WSAnimation.spring) {
-//                                     registryRepo.removeItem(item.id)
-//                                 }
-//                             } label: {
-//                                 Label("Delete", systemImage: "trash")
-//                             }
-//                         }
-//                     }
-//                 } header: {
-//                     HStack {
-//                         Label(viewModel.displayDate, systemImage: "calendar")
-//                             .font(WSFont.body(13))
-//                             .foregroundStyle(Color.wsTextSecondary)
-//                             .lineLimit(1)
-//                         Spacer(minLength: 8)
-//                         Text("\(viewModel.items.count) Items")
-//                             .font(WSFont.caption(12))
-//                             .foregroundStyle(Color.wsAction)
-//                     }
-//                     .textCase(nil)
-//                 }
-            }
-            .listStyle(.insetGrouped)
-            .scrollContentBackground(.hidden)
-        } else {
-            WSEmptyState(
-                title: "Your Registry is Empty",
-                systemImage: "gift",
-                message: "Browse our collection and tap the gift icon to add favorites.",
-                buttonTitle: "Browse Collection",
-                action: { tabBarVM.selectTab(.home) }
-            )
-        }
-    }
-
-    /// List-based layout so content respects safe area and never overflows horizontally.
-    private var noRegistryContent: some View {
-        List {
-            Section {
-                WSRegistryHeroCard {
-                    tabBarVM.registryPath.append(.create)
-                }
-                .listRowInsets(rowInsets)
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-            }
-
-            Section {
-                ForEach(Array(viewModel.instructions.enumerated()), id: \.element.id) { index, item in
-                    RegistryReasonCard(
-                        number: index + 1,
-                        title: item.title,
-                        description: item.description
-                    )
-                    .listRowInsets(rowInsets)
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-                }
-            } header: {
-                WSSectionHeader(
-                    title: "Top Reasons to Register",
-                    subtitle: "Everything you need for your special day"
-                )
-                .textCase(nil)
-                .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
-            }
-        }
-        .listStyle(.plain)
-        .listSectionSpacing(12)
-        .scrollContentBackground(.hidden)
-        .background(Color.clear)
     }
 }
 

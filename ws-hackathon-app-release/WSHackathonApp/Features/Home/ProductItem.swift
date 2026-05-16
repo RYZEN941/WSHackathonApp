@@ -12,8 +12,14 @@ struct ProductItem: Identifiable, Hashable {
     let path: String?
     let availability: String
     let freeShip: Bool?
+    
+    // MARK: - Metadata
     let brand: String?
     let material: String?
+    let productType: String?
+    let pattern: String?
+    let collection: String?
+    let allProductTypes: String?
 
     static func == (lhs: ProductItem, rhs: ProductItem) -> Bool {
         lhs.id == rhs.id
@@ -35,15 +41,8 @@ struct ProductItem: Identifiable, Hashable {
         "An essential from our curated collection — designed for everyday gatherings and moments worth savoring. Timeless form meets lasting quality, exclusively at Williams Sonoma."
     }
     
-    // MARK: - Metadata for AI recommendations
-    let productType: String?
-    let pattern: String?
-    let collection: String?
-    let brand: String?
-    let material: String?
-    let allProductTypes: String?
-    
     init(id: String, title: String, price: Double?, path: String?,
+         availability: String = "ON_HAND", freeShip: Bool? = nil,
          productType: String? = nil, pattern: String? = nil,
          collection: String? = nil, brand: String? = nil,
          material: String? = nil, allProductTypes: String? = nil) {
@@ -51,6 +50,8 @@ struct ProductItem: Identifiable, Hashable {
         self.title = title
         self.price = price
         self.path = path
+        self.availability = availability
+        self.freeShip = freeShip
         self.productType = productType
         self.pattern = pattern
         self.collection = collection
@@ -61,9 +62,7 @@ struct ProductItem: Identifiable, Hashable {
     
     var imageURL: URL? {
         if let imageUrl = path {
-            if let networkURL = URL(string: AppConstants.API.imageBasePath + imageUrl) {
-                return networkURL
-            }
+            return URL(string: AppConstants.API.imageBasePath + imageUrl)
         }
         return nil
     }
@@ -81,9 +80,7 @@ extension ProductItem {
         self.title = dto.name
         self.availability = dto.availability ?? "ON_HAND"
         self.freeShip = dto.freeShip
-        self.brand = dto.properties?.brand
-        self.material = dto.properties?.material
-
+        
         if let priceValue = dto.price?.regularPrice {
             self.price = priceValue
         } else {
@@ -96,7 +93,7 @@ extension ProductItem {
             self.path = nil
         }
         
-        // Metadata for AI recommendations
+        // Metadata
         self.productType = dto.properties?.productType
         self.pattern = dto.properties?.pattern
         self.collection = dto.properties?.collection
