@@ -14,9 +14,19 @@ struct ProductItem: Identifiable {
     
     var imageURL: URL? {
         if let imageUrl = path {
-            return URL(string: AppConstants.API.imageBasePath + imageUrl)
+            // First try network URL
+            if let networkURL = URL(string: AppConstants.API.imageBasePath + imageUrl) {
+                return networkURL
+            }
         }
         return nil
+    }
+
+    var localImageName: String? {
+        guard let path = path else { return nil }
+        // Clean path (remove leading slash if present)
+        let cleanedPath = path.hasPrefix("/") ? String(path.dropFirst()) : path
+        return cleanedPath
     }
 }
 
