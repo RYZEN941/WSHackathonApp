@@ -17,6 +17,7 @@ struct ProductItemDTO: Identifiable, Codable {
     let media: ProductMedia?
     let availability: String?
     let deliveryEstimate: String?
+    let freeShip: Bool?
 }
 
 struct ProductPrice: Codable {

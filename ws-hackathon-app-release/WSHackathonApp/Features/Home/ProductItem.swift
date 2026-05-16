@@ -2,15 +2,38 @@
 //  ProductItem.swift
 //  WSHackathonApp
 //
-//  Created by Nilesh Mahajan on 05/04/26.
-//
 
 import Foundation
-struct ProductItem: Identifiable {
+
+struct ProductItem: Identifiable, Hashable {
     let id: String
     let title: String
     let price: Double?
     let path: String?
+    let availability: String
+    let freeShip: Bool?
+    let brand: String?
+    let material: String?
+
+    static func == (lhs: ProductItem, rhs: ProductItem) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
+    var isInStock: Bool {
+        availability.uppercased().contains("ON_HAND")
+    }
+
+    var availabilityLabel: String {
+        isInStock ? "In Stock" : "Available to Order"
+    }
+
+    var editorialDescription: String {
+        "An essential from our curated collection — designed for everyday gatherings and moments worth savoring. Timeless form meets lasting quality, exclusively at Williams Sonoma."
+    }
     
     // MARK: - Metadata for AI recommendations
     let productType: String?
@@ -38,17 +61,15 @@ struct ProductItem: Identifiable {
     
     var imageURL: URL? {
         if let imageUrl = path {
-            // First try network URL
             if let networkURL = URL(string: AppConstants.API.imageBasePath + imageUrl) {
                 return networkURL
             }
         }
         return nil
     }
-
+    
     var localImageName: String? {
         guard let path = path else { return nil }
-        // Clean path (remove leading slash if present)
         let cleanedPath = path.hasPrefix("/") ? String(path.dropFirst()) : path
         return cleanedPath
     }
@@ -58,15 +79,17 @@ extension ProductItem {
     init(from dto: ProductItemDTO) {
         self.id = dto.id
         self.title = dto.name
-        
-        // Price formatting: use regularPrice if available
+        self.availability = dto.availability ?? "ON_HAND"
+        self.freeShip = dto.freeShip
+        self.brand = dto.properties?.brand
+        self.material = dto.properties?.material
+
         if let priceValue = dto.price?.regularPrice {
             self.price = priceValue
         } else {
             self.price = 0.0
         }
-        
-        // Image: first ProductImage path if available
+
         if let firstImage = dto.media?.images?.first?.path {
             self.path = firstImage
         } else {

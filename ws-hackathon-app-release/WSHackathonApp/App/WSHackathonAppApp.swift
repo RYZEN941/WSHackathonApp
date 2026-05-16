@@ -11,13 +11,15 @@ import SwiftUI
 struct WSHackathonAppApp: App {
      @StateObject private var registryRepo = RegistryRepository()
      @StateObject private var cartRepo = CartRepository()
+     @StateObject private var wishlistRepo = WishlistRepository()
      @StateObject private var tabBarVM = WSTabBarViewModel()
-    
+
     var body: some Scene {
         WindowGroup {
             WSTabView()
                 .environmentObject(registryRepo)
                 .environmentObject(cartRepo)
+                .environmentObject(wishlistRepo)
                 .environmentObject(tabBarVM)
         }
     }
