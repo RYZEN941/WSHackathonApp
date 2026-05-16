@@ -2,13 +2,10 @@
 //  CartRecommendationView.swift
 //  WSHackathonApp
 //
-//  AI-powered "Complete Your Set" recommendation section for the cart.
-//
 
 import SwiftUI
 
 struct CartRecommendationView: View {
-    
     let recommendation: CartRecommendation
     let onAddProduct: (ProductItem) -> Void
     let onAddAll: () -> Void
@@ -16,41 +13,33 @@ struct CartRecommendationView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            
-            // MARK: - Header with gradient
+            // MARK: - Header
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {
                     Image(systemName: "sparkles")
-                        .font(.caption)
-                        .foregroundColor(.yellow)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(WSGradient.accent)
                     
                     Text(AppStrings.SmartCart.aiPowered)
-                        .font(.caption2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white.opacity(0.9))
-                        .textCase(.uppercase)
-                        .tracking(1.2)
+                        .font(WSFont.label(9))
+                        .foregroundStyle(Color.white.opacity(0.8))
+                        .tracking(1.5)
                 }
                 
-                Text(recommendation.detectedIntent)
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
+                Text(recommendation.detectedIntent.uppercased())
+                    .font(WSFont.heading(17))
+                    .foregroundStyle(Color.white)
+                    .tracking(0.5)
                 
                 Text(recommendation.reason)
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.8))
-                    .lineLimit(2)
+                    .font(WSFont.body(12))
+                    .foregroundStyle(Color.white.opacity(0.75))
+                    .lineLimit(1)
             }
-            .padding(16)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                LinearGradient(
-                    colors: [Color(red: 0.15, green: 0.15, blue: 0.2), Color(red: 0.25, green: 0.2, blue: 0.35)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
+            .background(WSGradient.button)
             
             // MARK: - Product Cards
             ScrollView(.horizontal, showsIndicators: false) {
@@ -61,104 +50,99 @@ struct CartRecommendationView: View {
                 }
                 .padding(16)
             }
-            .background(Color(.systemGray6))
+            .background(Color.white)
             
-            // MARK: - Complete My Set Button
+            // MARK: - Footer / Add All
             if recommendation.products.count > 1 {
                 Button(action: onAddAll) {
                     HStack(spacing: 8) {
                         Image(systemName: "sparkles")
-                            .font(.subheadline)
+                            .font(.system(size: 12, weight: .semibold))
                         Text(AppStrings.SmartCart.completeMySet)
-                            .fontWeight(.semibold)
+                            .font(WSFont.subheading(13))
                         
                         Spacer()
                         
                         Text(completeSetPriceText)
-                            .fontWeight(.bold)
+                            .font(WSFont.price(14))
                     }
-                    .font(.subheadline)
-                    .foregroundColor(.white)
-                    .padding(14)
-                    .background(
-                        LinearGradient(
-                            colors: [Color(red: 0.2, green: 0.2, blue: 0.28), Color(red: 0.35, green: 0.28, blue: 0.45)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(12)
+                    .foregroundStyle(.white)
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
+                    .padding(.vertical, 12)
+                    .wsPrimaryButtonBackground(cornerRadius: 8)
                 }
+                .buttonStyle(ScaleButtonStyle())
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
+                .background(Color.white)
             }
         }
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
-        .padding(.horizontal, 16)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(Color.wsNavy.opacity(0.08), lineWidth: 1)
+        )
+        // Set insets to 0 to let the card expand fully to the list's safe area boundaries
+        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
     }
     
-    // MARK: - Recommendation Card
-    
     private func recommendationCard(product: ProductItem) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Product image
+        VStack(alignment: .leading, spacing: 10) {
             CustomAsyncImage(url: product.imageURL)
-                .frame(width: 140, height: 140)
-                .cornerRadius(12)
-                .clipped()
+                .frame(width: 120, height: 120)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(Color.wsNavy.opacity(0.06), lineWidth: 1)
+                )
             
-            // Product title
-            Text(product.title)
-                .font(.caption)
-                .fontWeight(.medium)
-                .lineLimit(2)
-                .foregroundColor(.primary)
-                .frame(width: 140, alignment: .leading)
-            
-            // Price
-            if let price = product.price {
-                Text("$\(price, specifier: "%.2f")")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(product.title)
+                    .font(WSFont.body(11))
+                    .foregroundStyle(Color.wsNavy)
+                    .lineLimit(1)
+                
+                if let price = product.price {
+                    Text(price, format: .currency(code: "USD"))
+                        .font(WSFont.price(12))
+                        .foregroundStyle(Color.wsAccent)
+                }
             }
             
-            // Add button
             Button(action: {
-                withAnimation(.spring(response: 0.3)) {
+                withAnimation(WSAnimation.quickSpring) {
                     addedProductIds.insert(product.id)
                 }
                 onAddProduct(product)
             }) {
                 HStack(spacing: 4) {
                     Image(systemName: addedProductIds.contains(product.id) ? "checkmark" : "plus")
-                        .font(.caption2)
+                        .font(.system(size: 10, weight: .bold))
                     Text(addedProductIds.contains(product.id) ? AppStrings.SmartCart.added : AppStrings.SmartCart.addToCart)
-                        .font(.caption)
-                        .fontWeight(.semibold)
+                        .font(WSFont.caption(10))
                 }
-                .foregroundColor(addedProductIds.contains(product.id) ? .white : .white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .background(
-                    addedProductIds.contains(product.id)
-                    ? Color.green
-                    : Color.black
-                )
-                .cornerRadius(8)
+                .frame(height: 32)
+                .background(addedProductIds.contains(product.id) ? Color.wsSuccess : Color.wsCharcoal)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
             }
+            .buttonStyle(ScaleButtonStyle())
             .disabled(addedProductIds.contains(product.id))
         }
-        .padding(12)
+        .padding(10)
+        .frame(width: 140)
         .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.06), radius: 4, x: 0, y: 2)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .shadow(color: Color.black.opacity(0.03), radius: 6, y: 3)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(Color.wsNavy.opacity(0.04), lineWidth: 1)
+        )
     }
-    
-    // MARK: - Helpers
     
     private var completeSetPriceText: String {
         let total = recommendation.products

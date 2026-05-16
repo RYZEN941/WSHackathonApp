@@ -50,15 +50,14 @@ struct WSWishlistHeartButton: View {
         Button(action: action) {
             Image(systemName: isActive ? "heart.fill" : "heart")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(isActive ? Color.red : Color.wsNavy)
-                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(isActive ? Color.wsAccent : Color.wsNavy)
                 .frame(width: 34, height: 34)
                 .background(.ultraThinMaterial)
                 .clipShape(Circle())
                 .overlay(
                     Circle()
                         .strokeBorder(
-                            isActive ? Color.red.opacity(0.35) : Color.wsNavy.opacity(0.12),
+                            isActive ? Color.wsAccent.opacity(0.5) : Color.wsNavy.opacity(0.12),
                             lineWidth: 1
                         )
                 )
@@ -287,11 +286,11 @@ struct WSRegistryHeroCard: View {
                 Text("CREATE YOUR REGISTRY")
                     .font(WSFont.caption(10))
                     .tracking(2)
-                    .foregroundStyle(Color.white.opacity(0.92))
+                    .foregroundStyle(.black.opacity(0.8))
 
                 Text("Celebrate life's milestones with us.")
                     .font(WSFont.display(24))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.black)
                     .lineLimit(3)
                     .minimumScaleFactor(0.85)
 
@@ -301,7 +300,7 @@ struct WSRegistryHeroCard: View {
                         Text("Get Started")
                             .font(WSFont.subheading(14))
                     }
-                    .foregroundStyle(Color.wsCharcoal)
+                    .foregroundStyle(.black)
                     .padding(.horizontal, 18)
                     .padding(.vertical, 10)
                     .wsLightButtonBackground(cornerRadius: 10)

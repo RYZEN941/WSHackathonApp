@@ -2,14 +2,10 @@
 //  SmartRegistryView.swift
 //  WSHackathonApp
 //
-//  AI-powered gift discovery wizard for registry.
-//  Step 1: Set budget → Step 2: Select categories → Step 3: View generated bundles
-//
 
 import SwiftUI
 
 struct SmartRegistryView: View {
-    
     @StateObject private var viewModel = SmartRegistryViewModel()
     @EnvironmentObject var registryRepo: RegistryRepository
     @EnvironmentObject var tabBarVM: WSTabBarViewModel
@@ -19,12 +15,10 @@ struct SmartRegistryView: View {
     
     var body: some View {
         ZStack {
-            Color(.systemGray6)
-                .ignoresSafeArea()
+            Color.wsBackground.ignoresSafeArea()
             
-            ScrollView {
-                VStack(spacing: 24) {
-                    
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 28) {
                     // MARK: - AI Header
                     aiHeader
                     
@@ -53,7 +47,7 @@ struct SmartRegistryView: View {
                     
                     Spacer(minLength: 40)
                 }
-                .padding(.top, 8)
+                .padding(.top, 16)
             }
             
             // MARK: - Added Confirmation Overlay
@@ -72,123 +66,99 @@ struct SmartRegistryView: View {
 }
 
 // MARK: - Components
-
 private extension SmartRegistryView {
     
-    // MARK: - AI Header
-    
     var aiHeader: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 12) {
             HStack(spacing: 8) {
                 Image(systemName: "sparkles")
-                    .font(.title2)
-                    .foregroundColor(.yellow)
+                    .font(.title3)
+                    .foregroundStyle(WSGradient.button)
                     .symbolEffect(.pulse)
                 
                 Text("Smart Gift Discovery")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(WSFont.heading(22))
+                    .foregroundStyle(Color.wsNavy)
             }
             
-            Text("Tell us your budget and preferences, and our AI will create curated gift bundles just for you.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+            Text("Our AI analyzes our catalog to create curated gift bundles within your budget and style preferences.")
+                .font(WSFont.body(14))
+                .foregroundStyle(Color.wsTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
         }
         .padding(.top, 8)
     }
     
-    // MARK: - Occasion Badge
-    
     var occasionBadge: some View {
         HStack(spacing: 8) {
             Image(systemName: "gift.fill")
                 .font(.caption)
-            Text(viewModel.occasionText)
-                .font(.subheadline)
-                .fontWeight(.semibold)
+            Text(viewModel.occasionText.uppercased())
+                .font(WSFont.caption(11))
+                .tracking(1.5)
         }
-        .foregroundColor(.white)
+        .foregroundStyle(.white)
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
-        .background(
-            Capsule()
-                .fill(
-                    LinearGradient(
-                        colors: [Color(red: 0.2, green: 0.2, blue: 0.3), Color(red: 0.35, green: 0.25, blue: 0.45)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-        )
+        .background(WSGradient.button)
+        .clipShape(Capsule())
     }
     
-    // MARK: - Budget Section
-    
     var budgetSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             HStack {
                 Text(AppStrings.SmartRegistry.setYourBudget)
-                    .font(.headline)
-                    .fontWeight(.bold)
+                    .font(WSFont.subheading(16))
+                    .foregroundStyle(Color.wsNavy)
                 
                 Spacer()
                 
                 Text(viewModel.budgetText)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(Color(red: 0.35, green: 0.25, blue: 0.55))
+                    .font(WSFont.display(24))
+                    .foregroundStyle(Color.wsNavy)
             }
             
-            // Budget Slider
             Slider(value: $viewModel.budget, in: 25...1000, step: 25)
-                .tint(Color(red: 0.35, green: 0.25, blue: 0.55))
+                .tint(Color.wsNavy)
             
-            // Budget Presets
             HStack(spacing: 8) {
                 ForEach(viewModel.budgetPresets, id: \.self) { preset in
                     Button(action: {
-                        withAnimation(.spring(response: 0.3)) {
+                        withAnimation(WSAnimation.spring) {
                             viewModel.budget = preset
                         }
                     }) {
                         Text("$\(Int(preset))")
-                            .font(.caption)
+                            .font(WSFont.caption(12))
                             .fontWeight(viewModel.budget == preset ? .bold : .medium)
-                            .foregroundColor(viewModel.budget == preset ? .white : .primary)
-                            .padding(.horizontal, 14)
+                            .foregroundStyle(viewModel.budget == preset ? .white : Color.wsNavy)
+                            .padding(.horizontal, 16)
                             .padding(.vertical, 8)
-                            .background(
-                                viewModel.budget == preset
-                                ? Color(red: 0.35, green: 0.25, blue: 0.55)
-                                : Color(.systemGray5)
-                            )
-                            .cornerRadius(20)
+                            .background {
+                                if viewModel.budget == preset {
+                                    Color.wsNavy
+                                } else {
+                                    Color.wsControlFill
+                                }
+                            }
+                            .clipShape(Capsule())
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
         .padding(20)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+        .wsCard()
         .padding(.horizontal, 16)
     }
-    
-    // MARK: - Category Section
     
     var categorySection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(AppStrings.SmartRegistry.selectCategories)
-                .font(.headline)
-                .fontWeight(.bold)
+                .font(WSFont.subheading(16))
+                .foregroundStyle(Color.wsNavy)
             
-            Text("Select categories you're interested in, or leave empty for all.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            // Category chips in wrapped layout
             FlowLayout(spacing: 8) {
                 ForEach(viewModel.availableCategories, id: \.self) { category in
                     categoryChip(category)
@@ -196,9 +166,7 @@ private extension SmartRegistryView {
             }
         }
         .padding(20)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+        .wsCard()
         .padding(.horizontal, 16)
     }
     
@@ -206,7 +174,7 @@ private extension SmartRegistryView {
         let isSelected = viewModel.isCategorySelected(category)
         
         return Button(action: {
-            withAnimation(.spring(response: 0.3)) {
+            withAnimation(WSAnimation.quickSpring) {
                 viewModel.toggleCategory(category)
             }
         }) {
@@ -214,22 +182,22 @@ private extension SmartRegistryView {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.caption)
                 Text(category)
-                    .font(.subheadline)
-                    .fontWeight(isSelected ? .semibold : .regular)
+                    .font(WSFont.body(13))
             }
-            .foregroundColor(isSelected ? .white : .primary)
+            .foregroundStyle(isSelected ? .white : Color.wsNavy)
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(
-                isSelected
-                ? Color(red: 0.35, green: 0.25, blue: 0.55)
-                : Color(.systemGray6)
-            )
-            .cornerRadius(24)
+            .background {
+                if isSelected {
+                    WSGradient.button
+                } else {
+                    Color.wsControlFill
+                }
+            }
+            .clipShape(Capsule())
         }
+        .buttonStyle(.plain)
     }
-    
-    // MARK: - Generate Button
     
     var generateButton: some View {
         Button(action: {
@@ -241,80 +209,62 @@ private extension SmartRegistryView {
                 Image(systemName: "sparkles")
                     .font(.body)
                 Text(AppStrings.SmartRegistry.generateBundles)
-                    .fontWeight(.bold)
+                    .font(WSFont.subheading(16))
             }
-            .foregroundColor(.white)
+            .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
-            .padding(16)
-            .background(
-                LinearGradient(
-                    colors: [Color(red: 0.2, green: 0.2, blue: 0.3), Color(red: 0.4, green: 0.3, blue: 0.55)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .cornerRadius(14)
+            .frame(height: 54)
+            .wsPrimaryButtonBackground()
         }
+        .buttonStyle(ScaleButtonStyle())
         .disabled(viewModel.isGenerating)
         .opacity(viewModel.isGenerating ? 0.6 : 1)
         .padding(.horizontal, 16)
     }
     
-    // MARK: - Generating View
-    
     var generatingView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             ProgressView()
+                .tint(Color.wsNavy)
                 .scaleEffect(1.2)
             
             Text(AppStrings.SmartRegistry.generatingBundles)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                .font(WSFont.body(14))
+                .foregroundStyle(Color.wsTextSecondary)
             
-            // Shimmer placeholders
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
                 ForEach(0..<2, id: \.self) { _ in
                     ShimmerView()
-                        .frame(height: 160)
-                        .cornerRadius(16)
+                        .frame(height: 180)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
             }
             .padding(.horizontal, 16)
         }
-        .padding(.top, 8)
+        .padding(.top, 16)
     }
-    
-    // MARK: - No Bundles View
     
     var noBundlesView: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "tray")
-                .font(.largeTitle)
-                .foregroundColor(.secondary)
-            
-            Text(AppStrings.SmartRegistry.noBundlesMessage)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-        }
-        .padding(.vertical, 24)
+        WSEmptyState(
+            title: "No Bundles Found",
+            systemImage: "sparkles.rectangle.stack",
+            message: AppStrings.SmartRegistry.noBundlesMessage
+        )
+        .padding(.vertical, 40)
     }
     
-    // MARK: - Bundles Section
-    
     var bundlesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             HStack {
                 Text("Curated Bundles")
-                    .font(.headline)
-                    .fontWeight(.bold)
+                    .font(WSFont.heading(20))
+                    .foregroundStyle(Color.wsNavy)
                 
                 Spacer()
                 
                 Text("\(viewModel.giftBundles.count) options")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(WSFont.caption(12))
+                    .foregroundStyle(Color.wsTextSecondary)
             }
             .padding(.horizontal, 16)
             
@@ -327,38 +277,30 @@ private extension SmartRegistryView {
     func bundleCard(_ bundle: GiftBundleDisplay) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             // Bundle header
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Image(systemName: "gift.fill")
                         .font(.caption)
-                        .foregroundColor(.yellow)
+                        .foregroundStyle(Color.wsAccent)
                     
                     Text(bundle.themeName)
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
+                        .font(WSFont.subheading(17))
+                        .foregroundStyle(Color.white)
                     
                     Spacer()
                     
-                    Text("$\(bundle.totalPrice, specifier: "%.2f")")
-                        .font(.subheadline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
+                    Text(bundle.totalPrice, format: .currency(code: "USD"))
+                        .font(WSFont.display(20))
+                        .foregroundStyle(Color.white)
                 }
                 
                 Text(bundle.themeDescription)
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.8))
+                    .font(WSFont.body(13))
+                    .foregroundStyle(Color.white.opacity(0.85))
                     .lineLimit(2)
             }
-            .padding(16)
-            .background(
-                LinearGradient(
-                    colors: [Color(red: 0.15, green: 0.15, blue: 0.22), Color(red: 0.3, green: 0.22, blue: 0.4)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
+            .padding(20)
+            .background(WSGradient.button)
             
             // Products in bundle
             VStack(spacing: 0) {
@@ -367,147 +309,133 @@ private extension SmartRegistryView {
                     
                     if product.id != bundle.products.last?.id {
                         Divider()
-                            .padding(.horizontal, 16)
+                            .overlay(Color.wsNavy.opacity(0.06))
+                            .padding(.horizontal, 20)
                     }
                 }
             }
             .background(Color.white)
             
-            // Budget check
-            if bundle.totalPrice <= viewModel.budget {
-                HStack(spacing: 6) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                        .font(.caption)
+            // Status bar
+            HStack(spacing: 6) {
+                let isWithin = bundle.totalPrice <= viewModel.budget
+                Image(systemName: isWithin ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                    .font(.caption)
+                
+                if isWithin {
                     Text("Within budget — $\(String(format: "%.2f", viewModel.budget - bundle.totalPrice)) remaining")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(Color.green.opacity(0.08))
-            } else {
-                HStack(spacing: 6) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
-                        .font(.caption)
+                } else {
                     Text("$\(String(format: "%.2f", bundle.totalPrice - viewModel.budget)) over budget")
-                        .font(.caption)
-                        .foregroundColor(.orange)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(Color.orange.opacity(0.08))
             }
+            .font(WSFont.caption(12))
+            .foregroundStyle(bundle.totalPrice <= viewModel.budget ? Color.wsSuccess : .orange)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+            .background(Color.wsBackground)
             
             // Add Bundle Button
             Button(action: {
                 viewModel.addBundleToRegistry(bundle)
                 addedBundleName = bundle.themeName
-                withAnimation(.spring(response: 0.4)) {
+                withAnimation(WSAnimation.spring) {
                     showAddedConfirmation = true
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                     withAnimation {
                         showAddedConfirmation = false
                     }
                 }
             }) {
-                HStack(spacing: 8) {
+                HStack(spacing: 10) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.subheadline)
                     Text(AppStrings.SmartRegistry.addBundleToRegistry)
-                        .fontWeight(.semibold)
+                        .font(WSFont.subheading(15))
                 }
-                .font(.subheadline)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .padding(14)
-                .background(Color.black)
-                .cornerRadius(12)
+                .frame(height: 50)
+                .wsPrimaryButtonBackground()
             }
-            .padding(16)
+            .buttonStyle(ScaleButtonStyle())
+            .padding(20)
+            .background(Color.white)
         }
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .wsCard()
         .padding(.horizontal, 16)
     }
     
     func bundleProductRow(_ product: ProductItem, bundle: GiftBundleDisplay) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
             CustomAsyncImage(url: product.imageURL)
-                .frame(width: 56, height: 56)
-                .cornerRadius(8)
-                .clipped()
+                .frame(width: 64, height: 64)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.wsNavy.opacity(0.08), lineWidth: 1))
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(product.title)
-                    .font(.caption)
-                    .fontWeight(.medium)
+                    .font(WSFont.body(13))
+                    .foregroundStyle(Color.wsNavy)
                     .lineLimit(2)
                 
                 if let price = product.price {
-                    Text("$\(price, specifier: "%.2f")")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
+                    Text(price, format: .currency(code: "USD"))
+                        .font(WSFont.price(14))
+                        .foregroundStyle(Color.wsAccent)
                 }
             }
             
             Spacer()
             
             Button(action: {
-                withAnimation(.spring(response: 0.3)) {
+                withAnimation(WSAnimation.quickSpring) {
                     viewModel.removeBundleItem(product, from: bundle)
                 }
             }) {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.body)
-                    .foregroundColor(.gray)
+                    .font(.title3)
+                    .foregroundStyle(Color.wsMuted)
             }
+            .buttonStyle(.plain)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
     }
-    
-    // MARK: - Confirmation Overlay
     
     var confirmationOverlay: some View {
         VStack {
             Spacer()
             
-            HStack(spacing: 12) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.green)
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle().fill(Color.wsSuccess.opacity(0.2)).frame(width: 32, height: 32)
+                    Image(systemName: "checkmark").font(.system(size: 14, weight: .bold)).foregroundStyle(Color.wsSuccess)
+                }
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Added to Registry!")
-                        .font(.subheadline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                    
-                    Text("\"\(addedBundleName)\" bundle added")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
+                    Text("Added to Registry")
+                        .font(WSFont.subheading(15))
+                        .foregroundStyle(Color.wsNavy)
+                    Text("\"\(addedBundleName)\" bundle saved")
+                        .font(WSFont.caption(12))
+                        .foregroundStyle(Color.wsTextSecondary)
                 }
                 
                 Spacer()
             }
             .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.black.opacity(0.9))
-            )
-            .padding(.horizontal, 16)
-            .padding(.bottom, 32)
+            .background(WSCardBackground(cornerRadius: 16))
+            .shadow(color: Color.black.opacity(0.15), radius: 20, y: 10)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 40)
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
 }
 
-// MARK: - Flow Layout for category chips
-
+// MARK: - Flow Layout
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
     

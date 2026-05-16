@@ -13,6 +13,8 @@ struct ProductDetailView: View {
     @EnvironmentObject private var tabBarVM: WSTabBarViewModel
     @EnvironmentObject private var wishlistRepository: WishlistRepository
     @Environment(\.dismiss) private var dismiss
+    
+    @State private var showRegistrySelection = false
 
     private var isWishlisted: Bool {
         wishlistRepository.contains(productId: viewModel.product.id)
@@ -47,7 +49,7 @@ struct ProductDetailView: View {
                     } label: {
                         Image(systemName: isWishlisted ? "heart.fill" : "heart")
                             .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(isWishlisted ? .red : Color.wsCharcoal)
+                            .foregroundStyle(isWishlisted ? Color.wsAccent : Color.wsCharcoal)
                             .frame(width: 36, height: 36)
                             .background(Color.white.opacity(0.9))
                             .clipShape(Circle())
@@ -66,6 +68,9 @@ struct ProductDetailView: View {
         }
         .animation(WSAnimation.spring, value: viewModel.inCart)
         .animation(WSAnimation.spring, value: viewModel.inRegistry)
+        .sheet(isPresented: $showRegistrySelection) {
+            registrySelectionSheet
+        }
     }
 
     // MARK: - Hero
@@ -220,9 +225,14 @@ struct ProductDetailView: View {
     private var registrySection: some View {
         Button {
             if viewModel.inRegistry {
+                // If in multiple, maybe show list to manage? For now toggle/remove from all
                 viewModel.removeFromRegistry()
             } else if viewModel.canAddToRegistry {
-                viewModel.addToRegistry()
+                if viewModel.registries.count > 1 {
+                    showRegistrySelection = true
+                } else {
+                    viewModel.addToRegistry()
+                }
             } else {
                 dismiss()
                 tabBarVM.selectTab(.registry)
@@ -284,7 +294,7 @@ struct ProductDetailView: View {
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: viewModel.inCart ? "bag.fill" : "bag.badge.plus")
-                        Text(viewModel.inCart ? "View Bag" : "Add to Bag")
+                        Text(viewModel.inCart ? "View Cart" : "Add to Bag")
                             .font(WSFont.subheading(16))
                     }
                     .foregroundStyle(.white)
@@ -314,5 +324,51 @@ struct ProductDetailView: View {
                 .background(.ultraThinMaterial)
                 .clipShape(Circle())
         }
+    }
+    
+    private var registrySelectionSheet: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Add to Registry")
+                .font(WSFont.display(24))
+                .foregroundStyle(Color.wsNavy)
+                .padding(.top, 10)
+            
+            Text("Select which registry you'd like to add this item to.")
+                .font(WSFont.body(14))
+                .foregroundStyle(Color.wsTextSecondary)
+            
+            VStack(spacing: 12) {
+                ForEach(viewModel.registries) { registry in
+                    Button {
+                        viewModel.addToRegistry(registry.id)
+                        showRegistrySelection = false
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(registry.displayName)
+                                    .font(WSFont.subheading(16))
+                                    .foregroundStyle(Color.wsNavy)
+                                Text(registry.date.formatted(date: .abbreviated, time: .omitted))
+                                    .font(WSFont.caption(12))
+                                    .foregroundStyle(Color.wsTextSecondary)
+                            }
+                            Spacer()
+                            Image(systemName: "plus.circle")
+                                .font(.system(size: 20))
+                                .foregroundStyle(Color.wsAccent)
+                        }
+                        .padding(16)
+                        .background(Color.wsControlFill)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                }
+            }
+            
+            Spacer()
+        }
+        .padding(24)
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
 }

@@ -33,15 +33,13 @@ final class RegistryItemRowViewModel: ObservableObject {
 
         apply(item: item)
 
-        cancellable = registryRepo.$currentRegistry
+        cancellable = registryRepo.$registries
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] registry in
+            .sink { [weak self] (registries: [Registry]) in
                 guard let self else { return }
-                if let updated = registry?.items.first(where: { $0.id == self.itemId }) {
-                    self.apply(item: updated)
-                } else {
-                    self.quantity = 0
-                }
+                // Check all registries for this item's quantity
+                let totalQty = registries.reduce(0) { $0 + ($1.items.first(where: { $0.id == self.itemId })?.quantity ?? 0) }
+                self.quantity = totalQty
             }
     }
 
@@ -57,14 +55,16 @@ final class RegistryItemRowViewModel: ObservableObject {
     }
 
     func increaseQty() {
+        guard let registryId = registryRepo.selectedRegistryId ?? registryRepo.registries.first?.id else { return }
         withAnimation(WSAnimation.spring) {
-            registryRepo.increaseQty(itemId)
+            registryRepo.updateQty(itemId, registryId: registryId, increment: true)
         }
     }
 
     func decreaseQty() {
+        guard let registryId = registryRepo.selectedRegistryId ?? registryRepo.registries.first?.id else { return }
         withAnimation(WSAnimation.spring) {
-            registryRepo.decreaseQty(itemId)
+            registryRepo.updateQty(itemId, registryId: registryId, increment: false)
         }
     }
 

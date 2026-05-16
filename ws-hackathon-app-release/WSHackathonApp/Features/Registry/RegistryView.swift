@@ -17,28 +17,71 @@ struct RegistryView: View {
     @EnvironmentObject var cartRepo: CartRepository
     @EnvironmentObject var tabBarVM: WSTabBarViewModel
     
+    @State private var showRegistryDetail = false
+    
     private let rowInsets = EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20)
     
     var body: some View {
         NavigationStack(path: $tabBarVM.registryPath) {
-            Group {
-                if viewModel.hasRegistry {
-                    registryContent
-                } else {
-                    noRegistryContent
+            ScrollView {
+                VStack(spacing: 20) {
+                    if viewModel.hasRegistry {
+                        if showRegistryDetail {
+                            registryContent
+                                .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
+                                                      removal: .move(edge: .trailing).combined(with: .opacity)))
+                        } else {
+                            VStack(spacing: 20) {
+                                ForEach(viewModel.registries) { registry in
+                                    registryDashboardView(for: registry)
+                                }
+                            }
+                            .transition(.asymmetric(insertion: .move(edge: .leading).combined(with: .opacity),
+                                                  removal: .move(edge: .leading).combined(with: .opacity)))
+                        }
+                    } else {
+                        noRegistryContent
+                    }
                 }
+                .padding(.vertical, 20)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .wsAppBackground()
-            .navigationTitle(viewModel.hasRegistry ? viewModel.displayTitle : AppStrings.Registry.title)
+            .background(Color.wsBackground.ignoresSafeArea())
+            .navigationTitle(showRegistryDetail ? viewModel.displayTitle : AppStrings.Registry.title)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                if viewModel.hasRegistry {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Delete", role: .destructive) {
-                            viewModel.deleteRegistry(using: registryRepo)
+                    if showRegistryDetail {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Delete", role: .destructive) {
+                                withAnimation(WSAnimation.spring) {
+                                    viewModel.deleteRegistry(using: registryRepo)
+                                    showRegistryDetail = false
+                                }
+                            }
+                            .font(WSFont.body(15))
                         }
-                        .font(WSFont.body(15))
+                    } else {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button {
+                                tabBarVM.registryPath.append(.create)
+                            } label: {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundStyle(Color.wsNavy)
+                            }
+                        }
+                    }
+                    
+                    if showRegistryDetail {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button {
+                                withAnimation(WSAnimation.spring) {
+                                    showRegistryDetail = false
+                                }
+                            } label: {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundStyle(Color.wsNavy)
+                            }
                     }
                 }
             }
@@ -56,6 +99,8 @@ struct RegistryView: View {
         .onAppear {
             viewModel.bind(repository: registryRepo)
         }
+        .animation(WSAnimation.spring, value: viewModel.hasRegistry)
+        .animation(WSAnimation.spring, value: showRegistryDetail)
     }
 }
 
@@ -72,17 +117,6 @@ private extension RegistryView {
                 if viewModel.hasBudget {
                     budgetProgressView
                 }
-                
-                HStack {
-                    Label(viewModel.displayDate, systemImage: "calendar")
-                        .font(WSFont.body(13))
-                        .foregroundStyle(Color.wsTextSecondary)
-                    Spacer()
-                    Text("\(viewModel.items.count) Items")
-                        .font(WSFont.caption(12))
-                        .foregroundStyle(Color.wsAction)
-                }
-                .padding(.horizontal, 20)
             }
             .padding(.vertical, 16)
             
@@ -95,34 +129,25 @@ private extension RegistryView {
     }
     
     var registryItemsList: some View {
-        List {
-            Section {
-                ForEach(viewModel.items) { item in
-                    RegistryItemRow(
-                        viewModel: RegistryItemRowViewModel(
-                            item: item,
-                            registryRepo: registryRepo,
-                            cartRepo: cartRepo,
-                            tabbarVM: tabBarVM
-                        )
+        VStack(spacing: 12) {
+            ForEach(viewModel.items) { item in
+                RegistryItemRow(
+                    viewModel: RegistryItemRowViewModel(
+                        item: item,
+                        registryRepo: registryRepo,
+                        cartRepo: cartRepo,
+                        tabbarVM: tabBarVM
                     )
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    .listRowBackground(WSCardBackground(cornerRadius: 12))
-                    .listRowSeparatorTint(Color.wsNavy.opacity(0.06))
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            withAnimation(WSAnimation.spring) {
-                                registryRepo.removeItem(item.id)
-                            }
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
-                }
+                )
+                .padding(12)
+                .background(WSCardBackground(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(Color.wsNavy.opacity(0.06), lineWidth: 1)
+                )
             }
         }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
+        .padding(.horizontal, 20)
     }
     
     var emptyItemsView: some View {
@@ -135,41 +160,111 @@ private extension RegistryView {
         )
     }
     
-    var noRegistryContent: some View {
-        List {
-            Section {
-                WSRegistryHeroCard {
-                    tabBarVM.registryPath.append(.create)
-                }
-                .listRowInsets(rowInsets)
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
+    @ViewBuilder
+    func registryDashboardView(for registry: Registry) -> some View {
+        Button {
+            withAnimation(WSAnimation.spring) {
+                registryRepo.selectRegistry(registry.id)
+                showRegistryDetail = true
             }
-
-            Section {
-                ForEach(Array(viewModel.instructions.enumerated()), id: \.element.id) { index, item in
-                    RegistryReasonCard(
-                        number: index + 1,
-                        title: item.title,
-                        description: item.description
-                    )
-                    .listRowInsets(rowInsets)
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
+        } label: {
+            VStack(alignment: .leading, spacing: 16) {
+                // Header Section
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(registry.date.formatted(date: .abbreviated, time: .omitted))
+                        .font(WSFont.caption(12))
+                        .foregroundStyle(Color.wsAccent)
+                        .fontWeight(.medium)
+                    
+                    Text(registry.displayName)
+                        .font(WSFont.subheading(20))
+                        .foregroundStyle(Color.wsNavy)
                 }
-            } header: {
-                WSSectionHeader(
-                    title: "Top Reasons to Register",
-                    subtitle: "Everything you need for your special day"
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                
+                Divider()
+                    .padding(.horizontal, 20)
+                    .opacity(0.1)
+                
+                // Info Section
+                HStack(spacing: 24) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("\(registry.items.count)")
+                            .font(WSFont.subheading(20))
+                            .foregroundStyle(Color.wsNavy)
+                        Text("Items")
+                            .font(WSFont.caption(12))
+                            .foregroundStyle(Color.wsTextSecondary)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("$\(String(format: "%.0f", registry.totalValue))")
+                            .font(WSFont.subheading(20))
+                            .foregroundStyle(Color.wsNavy)
+                        Text("Total Value")
+                            .font(WSFont.caption(12))
+                            .foregroundStyle(Color.wsTextSecondary)
+                    }
+                    
+                    if let budget = registry.budget {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("$\(String(format: "%.0f", budget))")
+                                .font(WSFont.subheading(20))
+                                .foregroundStyle(Color.wsAccent)
+                            Text("Budget")
+                                .font(WSFont.caption(12))
+                                .foregroundStyle(Color.wsTextSecondary)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Color.wsMuted)
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+            }
+            .background(Color.wsCard)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.wsBorder.opacity(0.5), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.05), radius: 10, y: 5)
+        }
+        .buttonStyle(ScaleButtonStyle())
+        .padding(.horizontal, 20)
+    }
+
+    var noRegistryContent: some View {
+        VStack(spacing: 0) {
+            WSRegistryHeroCard {
+                tabBarVM.registryPath.append(.create)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 12)
+
+            WSSectionHeader(
+                title: "Top Reasons to Register",
+                subtitle: "Everything you need for your special day"
+            )
+            .padding(.horizontal, 20)
+            .padding(.bottom, 8)
+
+            ForEach(Array(viewModel.instructions.enumerated()), id: \.element.id) { index, item in
+                RegistryReasonCard(
+                    number: index + 1,
+                    title: item.title,
+                    description: item.description
                 )
-                .textCase(nil)
-                .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
+                .padding(.horizontal, 20)
+                .padding(.bottom, 16)
             }
         }
-        .listStyle(.plain)
-        .listSectionSpacing(12)
-        .scrollContentBackground(.hidden)
-        .background(Color.clear)
+        .padding(.bottom, 40)
     }
     
     var aiGiftFinderButton: some View {

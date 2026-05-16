@@ -74,8 +74,8 @@ enum WSGradient {
 
     static let cardStroke = LinearGradient(
         colors: [
-            Color.wsBorder.opacity(0.5),
-            Color.wsBorder.opacity(0.25)
+            Color.wsAccent.opacity(0.35),
+            Color.wsBorder.opacity(0.4)
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing

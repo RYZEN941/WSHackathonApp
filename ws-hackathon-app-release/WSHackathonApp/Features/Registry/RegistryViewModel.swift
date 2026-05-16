@@ -12,22 +12,31 @@ import SwiftUI
 @MainActor
 final class RegistryViewModel: ObservableObject {
     
-    @Published private(set) var registry: Registry?
+    @Published private(set) var registries: [Registry] = []
+    @Published var selectedRegistryId: UUID?
     
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Bind Repository
     
     func bind(repository: RegistryRepository) {
-        repository.$currentRegistry
+        repository.$registries
             .receive(on: RunLoop.main)
-            .assign(to: &$registry)
+            .assign(to: &$registries)
+        
+        repository.$selectedRegistryId
+            .receive(on: RunLoop.main)
+            .assign(to: &$selectedRegistryId)
     }
     
     // MARK: - Computed
     
+    var registry: Registry? {
+        registries.first { $0.id == selectedRegistryId } ?? registries.first
+    }
+
     var hasRegistry: Bool {
-        registry != nil
+        !registries.isEmpty
     }
     
     var hasItems: Bool {
@@ -95,7 +104,8 @@ final class RegistryViewModel: ObservableObject {
     // MARK: - Actions
     
     func deleteRegistry(using repository: RegistryRepository) {
-        repository.deleteRegistry()
+        guard let id = selectedRegistryId ?? registries.first?.id else { return }
+        repository.deleteRegistry(id)
     }
 }
 
