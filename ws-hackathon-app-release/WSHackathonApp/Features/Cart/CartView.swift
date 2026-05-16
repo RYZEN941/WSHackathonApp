@@ -38,6 +38,14 @@ struct CartView: View {
                                 }
                             }
                             .padding(16)
+                            
+                            SmartPairingsView(
+                                cartItems: viewModel.items,
+                                onAddToCart: { product in
+                                    cartRepository.add(product: product)
+                                }
+                            )
+                            .padding(.bottom, 16)
                         }
                         
                         // MARK: - Bottom Total View
