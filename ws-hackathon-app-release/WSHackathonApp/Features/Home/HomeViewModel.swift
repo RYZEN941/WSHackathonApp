@@ -76,12 +76,8 @@ class HomeViewModel: ObservableObject {
             let dtos: [ProductItemDTO] = try await APIClient.shared.request(Endpoint.products())
             self.products = dtos.map { ProductItem(from: $0) }
         } catch {
-            print("Network fetch failed, trying local data: \(error)")
-            if let localDTOs: [ProductItemDTO] = LocalDataManager.load("skus.json") {
-                self.products = localDTOs.map { ProductItem(from: $0) }
-            } else {
-                errorMessage = "Failed to load products"
-            }
+            print(error)
+            errorMessage = "Failed to load products"
         }
         
         isLoading = false

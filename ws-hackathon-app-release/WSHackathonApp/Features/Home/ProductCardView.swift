@@ -30,25 +30,14 @@ struct ProductCardView: View {
                             .clipped()
                             .cornerRadius(8)
                     } else if phase.error != nil {
-                        if let localName = product.localImageName,
-                           let path = Bundle.main.path(forResource: localName, ofType: nil, inDirectory: "Images"),
-                           let uiImage = UIImage(contentsOfFile: path) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: geo.size.width, height: 150)
-                                .clipped()
-                                .cornerRadius(8)
-                        } else {
-                            ZStack {
-                                Color(.systemGray5)
-                                Image(systemName: "photo")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 30))
-                            }
-                            .frame(width: geo.size.width, height: 150)
-                            .cornerRadius(8)
+                        ZStack {
+                            Color(.systemGray5)
+                            Image(systemName: "photo")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 30))
                         }
+                        .frame(width: geo.size.width, height: 150)
+                        .cornerRadius(8)
                     } else {
                         ZStack {
                             Color(.systemGray5)
