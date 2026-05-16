@@ -2,66 +2,69 @@
 //  RegistryItemRow.swift
 //  WSHackathonApp
 //
-//  Created by Nilesh Mahajan on 06/04/26.
-//
+
 import SwiftUI
 
 struct RegistryItemRow: View {
-    
+
     @StateObject private var viewModel: RegistryItemRowViewModel
-    
+
     init(viewModel: RegistryItemRowViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
-    
+
     var body: some View {
-        HStack(spacing: 12) {
-            
+        HStack(alignment: .top, spacing: 12) {
             CustomAsyncImage(url: viewModel.imageURL)
-                .frame(width: 80, height: 80)
-                .cornerRadius(8)
-            
-            VStack(alignment: .leading, spacing: 6) {
-                
-                Text(viewModel.title)
-                    .font(.subheadline)
-                    .lineLimit(2)
-                
-                Text(viewModel.priceText)
-                    .foregroundColor(.green)
-                
-                HStack {
-                    Button(action: viewModel.decreaseQty) {
-                        Image(systemName: "minus.circle.fill")
+                .frame(width: 76, height: 76)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(Color.wsNavy.opacity(0.08), lineWidth: 1)
+                )
+
+            VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(viewModel.title)
+                        .font(WSFont.body(14))
+                        .foregroundStyle(Color.wsNavy)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text(viewModel.priceText)
+                        .font(WSFont.price(15))
+                        .foregroundStyle(Color.wsAccent)
+                }
+
+                HStack(spacing: 8) {
+                    WSQuantityStepper(
+                        quantity: max(viewModel.quantity, 1),
+                        onDecrement: viewModel.decreaseQty,
+                        onIncrement: viewModel.increaseQty
+                    )
+
+                    Spacer(minLength: 0)
+
+                    Button(action: viewModel.addToCart) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "cart.badge.plus")
+                                .font(.system(size: 13, weight: .semibold))
+                            Text("Add")
+                                .font(WSFont.caption(12))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 9)
+                        .background(WSGradient.button)
+                        .clipShape(Capsule(style: .continuous))
                     }
-                    
-                    Text(viewModel.quantityText)
-                        .font(.caption)
-                        .frame(minWidth: 20)
-                    
-                    Button(action: viewModel.increaseQty) {
-                        Image(systemName: "plus.circle.fill")
-                    }
+                    .buttonStyle(ScaleButtonStyle())
+                    .layoutPriority(1)
                 }
-                .foregroundColor(.black)
             }
-            
-            Spacer()
-            
-            VStack(spacing: 12) {
-                Button(action: viewModel.addToCart) {
-                    Image(systemName: "cart.badge.plus")
-                }
-                .foregroundColor(.black)
-                
-                Button(action: viewModel.removeItem) {
-                    Image(systemName: "trash")
-                }
-                .foregroundColor(.red)
-            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(12)
+        .padding(.vertical, 2)
+        .animation(WSAnimation.spring, value: viewModel.quantity)
     }
 }

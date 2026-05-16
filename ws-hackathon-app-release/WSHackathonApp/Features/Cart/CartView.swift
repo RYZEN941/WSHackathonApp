@@ -2,8 +2,6 @@
 //  CartView.swift
 //  WSHackathonApp
 //
-//  Created by Nilesh Mahajan on 03/04/26.
-//
 
 import SwiftUI
 
@@ -11,74 +9,65 @@ struct CartView: View {
     @StateObject private var viewModel = CartViewModel()
     @EnvironmentObject var cartRepository: CartRepository
     @EnvironmentObject var tabBarVM: WSTabBarViewModel
-    
+
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color(.systemGray6)
-                    .ignoresSafeArea()
+            Group {
                 if viewModel.isEmptyCart {
-                    VStack {
-                        EmptyCartView {
-                            tabBarVM.selectTab(.home)
-                        }
-                        Spacer()
-                    }
+                    WSEmptyState(
+                        title: "Your Cart is Empty",
+                        systemImage: "bag",
+                        message: "Add beautiful pieces from our curated collection.",
+                        buttonTitle: "Continue Shopping",
+                        action: { tabBarVM.selectTab(.home) }
+                    )
+                    .wsAppBackground()
                 } else {
-                    VStack(spacing: 0) {
-                        
-                        ScrollView {
-                            VStack(spacing: 16) {
-                                ForEach(viewModel.items) { item in
-                                    CartItemRow(
-                                        item: item,
-                                        onAdd: { viewModel.add(item) },
-                                        onRemove: { viewModel.removeItem(item) }
-                                    )
+                    List {
+                        Section {
+                            ForEach(viewModel.items) { item in
+                                CartItemRow(
+                                    item: item,
+                                    onAdd: { viewModel.add(item) },
+                                    onRemove: { viewModel.removeItem(item) }
+                                )
+                                .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
+                                .listRowBackground(WSCardBackground(cornerRadius: 12))
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        withAnimation(.spring(response: 0.35)) {
+                                            viewModel.removeCompletely(item)
+                                        }
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
                                 }
                             }
-                            .padding(16)
+                        } header: {
+                            Text("\(viewModel.items.count) \(viewModel.items.count == 1 ? "Item" : "Items")")
+                                .font(WSFont.caption(12))
+                                .foregroundStyle(Color.wsTextSecondary)
+                                .textCase(nil)
                         }
-                        
-                        // MARK: - Bottom Total View
-                        VStack(spacing: 12) {
-                            
-                            HStack {
-                                Text(AppStrings.Cart.total)
-                                    .font(.headline)
-                                
-                                Spacer()
-                                
-                                Text(viewModel.totalPriceText)
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                            }
-                            
-                            Button(action: {
-                                // TODO: - Implement checkout flow
-                            }) {
-                                Text(AppStrings.Cart.checkoutButton)
-                                    .fontWeight(.semibold)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.black)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
-                            }
-                        }
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(16.0)
-                        .shadow(color: Color(.systemGray4), radius: 4, x: 0, y: -2)
+                    }
+                    .listStyle(.insetGrouped)
+                    .scrollContentBackground(.hidden)
+                    .wsAppBackground()
+                    .safeAreaInset(edge: .bottom) {
+                        WSCheckoutBar(
+                            totalLabel: AppStrings.Cart.total,
+                            totalValue: viewModel.totalPriceText,
+                            buttonTitle: AppStrings.Cart.checkoutButton,
+                            action: {}
+                        )
                     }
                 }
             }
             .navigationTitle(AppStrings.Cart.title)
+            .navigationBarTitleDisplayMode(.large)
         }
         .onAppear {
-            Task {
-                viewModel.bind(repository: cartRepository)
-            }
+            Task { viewModel.bind(repository: cartRepository) }
         }
     }
 }

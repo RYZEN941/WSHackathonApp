@@ -14,6 +14,12 @@ enum AppStrings {
         static let cart = "Cart"
     }
     
+    enum Wishlist {
+        static let title = "Wishlist"
+        static let emptyTitle = "Your Wishlist is Empty"
+        static let emptyMessage = "Tap the heart on any product to save it here."
+    }
+
     enum Home {
         static let title = "Home"
         static let searchPlaceHolder = "Search for products..."

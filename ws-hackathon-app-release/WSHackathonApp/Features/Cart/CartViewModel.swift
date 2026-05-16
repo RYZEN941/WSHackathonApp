@@ -38,6 +38,10 @@ final class CartViewModel: ObservableObject {
         repository?.remove(productId: item.id)
     }
     
+    func removeCompletely(_ item: CartItem) {
+        repository?.removeCompletely(productId: item.id)
+    }
+    
     func add(_ item: CartItem) {
         repository?.increaseQuantity(productId: item.id)
     }

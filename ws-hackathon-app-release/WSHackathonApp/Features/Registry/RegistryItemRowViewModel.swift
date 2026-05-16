@@ -2,8 +2,6 @@
 //  RegistryItemRowViewModel.swift
 //  WSHackathonApp
 //
-//  Created by Nilesh Mahajan on 06/04/26.
-//
 
 import Foundation
 import SwiftUI
@@ -11,65 +9,80 @@ import Combine
 
 @MainActor
 final class RegistryItemRowViewModel: ObservableObject {
-    
-    let item: RegistryItem
-    
+
+    let itemId: String
+
+    @Published private(set) var title: String = ""
+    @Published private(set) var priceText: String = ""
+    @Published private(set) var quantity: Int = 0
+    @Published private(set) var imageURL: URL?
+
     private let registryRepo: RegistryRepository
     private let cartRepo: CartRepository
     private let tabBarVM: WSTabBarViewModel
+    private var cancellable: AnyCancellable?
 
     init(item: RegistryItem,
          registryRepo: RegistryRepository,
          cartRepo: CartRepository,
          tabbarVM: WSTabBarViewModel) {
-        self.item = item
+        self.itemId = item.id
         self.registryRepo = registryRepo
         self.cartRepo = cartRepo
         self.tabBarVM = tabbarVM
+
+        apply(item: item)
+
+        cancellable = registryRepo.$currentRegistry
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] registry in
+                guard let self else { return }
+                if let updated = registry?.items.first(where: { $0.id == self.itemId }) {
+                    self.apply(item: updated)
+                } else {
+                    self.quantity = 0
+                }
+            }
     }
-    
-    // MARK: - Display
-    
-    var title: String { item.title }
-    
-    var priceText: String {
-        "$\(item.price, default: "%.2f")"
+
+    private func apply(item: RegistryItem) {
+        title = item.title
+        priceText = String(format: "$%.2f", item.price)
+        quantity = item.quantity
+        if let url = item.imageUrl {
+            imageURL = URL(string: AppConstants.API.imageBasePath + url)
+        } else {
+            imageURL = nil
+        }
     }
-    
-    var quantityText: String {
-        "\(registryRepo.quantity(for: item))"
-    }
-    
-    var imageURL: URL? {
-        guard let url = item.imageUrl else { return nil }
-        return URL(string: AppConstants.API.imageBasePath + url)
-    }
-    
-    // MARK: - Actions
-    
+
     func increaseQty() {
-        registryRepo.increaseQty(item.id)
+        withAnimation(WSAnimation.spring) {
+            registryRepo.increaseQty(itemId)
+        }
     }
-    
+
     func decreaseQty() {
-        registryRepo.decreaseQty(item.id)
+        withAnimation(WSAnimation.spring) {
+            registryRepo.decreaseQty(itemId)
+        }
     }
-    
-    func removeItem() {
-        registryRepo.removeItem(item.id)
-    }
-    
+
     func addToCart() {
+        guard let item = registryRepo.currentRegistry?.items.first(where: { $0.id == itemId }) else {
+            return
+        }
         let product = ProductItem(
             id: item.id,
             title: item.title,
             price: item.price,
-            path: item.imageUrl ?? ""
+            path: item.imageUrl ?? "",
+            availability: "ON_HAND",
+            freeShip: nil,
+            brand: nil,
+            material: nil
         )
-        let quantityInRegistry = registryRepo.quantity(for: item)
-        
-        cartRepo.add(product: product, quantity: quantityInRegistry)
-        
+        cartRepo.add(product: product, quantity: item.quantity)
         tabBarVM.selectTab(.cart)
     }
 }
