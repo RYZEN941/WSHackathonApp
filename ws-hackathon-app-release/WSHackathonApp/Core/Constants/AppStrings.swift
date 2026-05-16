@@ -31,6 +31,15 @@ enum AppStrings {
         static let checkoutButton = "Checkout"
     }
     
+    enum SmartCart {
+        static let sectionTitle = "Complete Your Set"
+        static let completeMySet = "Complete My Set"
+        static let addToCart = "Add"
+        static let aiPowered = "AI-Powered"
+        static let analyzing = "Analyzing your cart..."
+        static let added = "Added!"
+    }
+    
     enum Registry {
         static let title = "Registry"
         static let create = "Create A Registry"
@@ -57,6 +66,21 @@ enum AppStrings {
         static let lastName = "Last Name"
         static let event = "Event Type"
         static let eventDate = "Event Date"
+        static let budget = "Budget (Optional)"
         static let createYourRegistry = "Create Your Registry"
     }
+    
+    enum SmartRegistry {
+        static let aiGiftFinder = "AI Gift Finder"
+        static let setYourBudget = "Set Your Budget"
+        static let selectCategories = "Select Categories"
+        static let generateBundles = "Find Perfect Gifts"
+        static let generatingBundles = "Creating curated bundles..."
+        static let addBundleToRegistry = "Add Bundle to Registry"
+        static let budgetRemaining = "Budget Remaining"
+        static let bundleTotal = "Bundle Total"
+        static let noBundlesMessage = "No bundles could be generated. Try adjusting your budget or categories."
+        static let occasionLabel = "Occasion"
+    }
 }
+
