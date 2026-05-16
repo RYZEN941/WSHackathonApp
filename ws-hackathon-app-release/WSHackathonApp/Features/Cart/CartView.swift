@@ -42,6 +42,26 @@ struct CartView: View {
                                         Label("Delete", systemImage: "trash")
                                     }
                                 }
+                                
+                                // MARK: - AI Recommendations Section
+                                if viewModel.showRecommendations {
+                                    if viewModel.isLoadingRecommendations {
+                                        ShimmerRecommendationSection()
+                                            .transition(.opacity)
+                                    } else if let recommendation = viewModel.recommendation,
+                                              !recommendation.products.isEmpty {
+                                        CartRecommendationView(
+                                            recommendation: recommendation,
+                                            onAddProduct: { product in
+                                                viewModel.addRecommendation(product)
+                                            },
+                                            onAddAll: {
+                                                viewModel.addAllRecommendations()
+                                            }
+                                        )
+                                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                                    }
+                                }
                             }
                         } header: {
                             Text("\(viewModel.items.count) \(viewModel.items.count == 1 ? "Item" : "Items")")
@@ -71,3 +91,4 @@ struct CartView: View {
         }
     }
 }
+

@@ -6,8 +6,13 @@
 	objectVersion = 70;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8C902E772FB86400006DE341 /* FoundationModels.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8C902E762FB86400006DE341 /* FoundationModels.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		75B248F32F7FAA4E00AD2FA7 /* WSHackathonApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WSHackathonApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8C902E762FB86400006DE341 /* FoundationModels.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FoundationModels.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk/System/Library/Frameworks/FoundationModels.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -19,6 +24,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8C902E772FB86400006DE341 /* FoundationModels.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -29,6 +35,7 @@
 			isa = PBXGroup;
 			children = (
 				75B248F52F7FAA4E00AD2FA7 /* WSHackathonApp */,
+				8C902E752FB863D1006DE341 /* Frameworks */,
 				75B248F42F7FAA4E00AD2FA7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -39,6 +46,14 @@
 				75B248F32F7FAA4E00AD2FA7 /* WSHackathonApp.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		8C902E752FB863D1006DE341 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8C902E762FB86400006DE341 /* FoundationModels.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
