@@ -47,6 +47,28 @@ final class RegistryViewModel: ObservableObject {
         return date.formatted(date: .abbreviated, time: .omitted)
     }
     
+    // MARK: - Budget
+    
+    var hasBudget: Bool {
+        registry?.budget != nil
+    }
+    
+    var budget: Double? {
+        registry?.budget
+    }
+    
+    var totalRegistryValue: Double {
+        registry?.totalValue ?? 0
+    }
+    
+    var remainingBudget: Double? {
+        registry?.remainingBudget
+    }
+    
+    var budgetProgress: Double {
+        registry?.budgetProgress ?? 0
+    }
+    
     // MARK: - Instructions
     
     var instructions: [RegistryInstruction] {
@@ -76,3 +98,4 @@ final class RegistryViewModel: ObservableObject {
         repository.deleteRegistry()
     }
 }
+

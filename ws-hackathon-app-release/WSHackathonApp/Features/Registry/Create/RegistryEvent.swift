@@ -11,7 +11,10 @@ enum RegistryEvent: String, CaseIterable, Identifiable {
     case wedding = "Wedding"
     case anniversary = "Anniversary"
     case housewarming = "Housewarming"
+    case babyShower = "Baby Shower"
+    case festiveGifting = "Festive Gifting"
     
     var id: String { rawValue }
     var title: String { rawValue }
 }
+

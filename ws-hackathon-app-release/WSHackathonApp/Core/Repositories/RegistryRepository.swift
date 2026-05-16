@@ -21,7 +21,8 @@ final class RegistryRepository: ObservableObject {
     func createRegistry(firstName: String,
                         lastName: String,
                         event: RegistryEvent,
-                        date: Date) {
+                        date: Date,
+                        budget: Double? = nil) {
         
         currentRegistry = Registry(
             id: UUID(),
@@ -29,8 +30,23 @@ final class RegistryRepository: ObservableObject {
             lastName: lastName,
             event: event,
             date: date,
-            items: []
+            items: [],
+            budget: budget
         )
+    }
+    
+    // MARK: - Budget
+    
+    func setBudget(_ budget: Double) {
+        currentRegistry?.budget = budget
+    }
+    
+    var totalRegistryValue: Double {
+        currentRegistry?.totalValue ?? 0
+    }
+    
+    var remainingBudget: Double? {
+        currentRegistry?.remainingBudget
     }
     
     // MARK: - Delete Registry
