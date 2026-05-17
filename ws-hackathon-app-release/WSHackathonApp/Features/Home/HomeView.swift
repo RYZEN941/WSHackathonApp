@@ -17,6 +17,7 @@ struct HomeView: View {
     @State private var selectedProductForRegistry: ProductItem?
     @State private var showRegistrySelection = false
     @State private var showUserSwitcher = false
+    @State private var showScanner = false
 
     private let gridColumns = [
         GridItem(.flexible(), spacing: 16),
@@ -62,6 +63,7 @@ struct HomeView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 16) {
+                        scannerToolbarButton
                         wishlistToolbarButton
                         userSwitcherToolbarButton
                     }
@@ -96,6 +98,15 @@ struct HomeView: View {
             .sheet(isPresented: $showUserSwitcher) {
                 UserSwitcherSheet(isPresented: $showUserSwitcher)
             }
+            .fullScreenCover(isPresented: $showScanner) {
+                ProductScannerView { product in
+                    showScanner = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        navigationPath.append(product)
+                    }
+                }
+                .ignoresSafeArea()
+            }
         }
     }
 
@@ -120,6 +131,17 @@ struct HomeView: View {
         .accessibilityLabel("Wishlist, \(wishlistRepository.count) items")
     }
     
+    private var scannerToolbarButton: some View {
+        Button {
+            showScanner = true
+        } label: {
+            Image(systemName: "barcode.viewfinder")
+                .font(.system(size: 20, weight: .regular))
+                .foregroundStyle(Color.wsNavy)
+        }
+        .accessibilityLabel("Scan a product")
+    }
+
     private var userSwitcherToolbarButton: some View {
         Button {
             showUserSwitcher = true
