@@ -20,13 +20,14 @@ struct RegistryView: View {
     
     @State private var showRegistryDetail = false
     @State private var showShareSheet = false
-    @State private var showGuestView = false
     @State private var showCreateJoinOptions = false
+    @State private var registryToPreview: Registry? = nil
     
     private let rowInsets = EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20)
     
     var body: some View {
-        NavigationStack(path: $tabBarVM.registryPath) {
+        ZStack {
+            NavigationStack(path: $tabBarVM.registryPath) {
             ScrollView {
                 VStack(spacing: 20) {
                     if viewModel.hasRegistry {
@@ -77,7 +78,9 @@ struct RegistryView: View {
                     } else {
                         ToolbarItem(placement: .topBarTrailing) {
                             Button {
-                                showCreateJoinOptions = true
+                                withAnimation(WSAnimation.spring) {
+                                    showCreateJoinOptions = true
+                                }
                             } label: {
                                 Image(systemName: "plus")
                                     .font(.system(size: 16, weight: .bold))
@@ -112,22 +115,13 @@ struct RegistryView: View {
                     JoinRegistryView()
                 }
             }
-            .confirmationDialog("Registry Options", isPresented: $showCreateJoinOptions, titleVisibility: .visible) {
-                Button("Create a Registry") {
-                    tabBarVM.registryPath.append(.create)
-                }
-                Button("Join a Registry") {
-                    tabBarVM.registryPath.append(.join)
-                }
-                Button("Cancel", role: .cancel) {}
-            }
         }
         .onAppear {
             viewModel.bind(repository: registryRepo)
         }
         .onChange(of: registryRepo.pendingGuestViewCode) { _, code in
             if code != nil {
-                showGuestView = true
+                registryToPreview = registryRepo.currentRegistry
                 registryRepo.pendingGuestViewCode = nil
             }
         }
@@ -141,13 +135,16 @@ struct RegistryView: View {
                 )
             }
         }
-        .fullScreenCover(isPresented: $showGuestView) {
-            if let registry = registryRepo.currentRegistry {
-                GuestRegistryView(registry: registry)
-                    .environmentObject(registryRepo)
-            }
+        .fullScreenCover(item: $registryToPreview) { registry in
+            GuestRegistryView(registry: registry)
+                .environmentObject(registryRepo)
+        }
+
+        if showCreateJoinOptions {
+            customOptionsPopup
         }
     }
+}
 }
 
 // MARK: - Components
@@ -518,7 +515,7 @@ private extension RegistryView {
 
     var guestPreviewButton: some View {
         Button {
-            showGuestView = true
+            registryToPreview = registryRepo.currentRegistry
         } label: {
             HStack(spacing: 12) {
                 ZStack {
@@ -547,6 +544,9 @@ private extension RegistryView {
 
                 Spacer()
 
+                CollaborationFacepileView()
+                    .padding(.trailing, 4)
+
                 Image(systemName: "chevron.right")
                     .font(.caption)
                     .foregroundColor(.gray)
@@ -563,6 +563,125 @@ private extension RegistryView {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    private var customOptionsPopup: some View {
+        ZStack {
+            // Semi-transparent blurred backdrop
+            Color.black.opacity(0.15)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation(WSAnimation.spring) {
+                        showCreateJoinOptions = false
+                    }
+                }
+            
+            Color.clear
+                .background(.ultraThinMaterial)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation(WSAnimation.spring) {
+                        showCreateJoinOptions = false
+                    }
+                }
+
+            // Popup Card
+            VStack(spacing: 20) {
+                // Title
+                VStack(spacing: 4) {
+                    Text("REGISTRY OPTIONS")
+                        .font(WSFont.label(11))
+                        .tracking(2)
+                        .foregroundStyle(Color.wsAccent)
+                    
+                    Text("Manage Your Registries")
+                        .font(WSFont.heading(18))
+                        .foregroundStyle(Color.wsNavy)
+                }
+                .padding(.top, 8)
+                
+                Divider()
+                    .opacity(0.15)
+                
+                // Actions
+                VStack(spacing: 12) {
+                    // Create Registry Button
+                    Button {
+                        withAnimation(WSAnimation.spring) {
+                            showCreateJoinOptions = false
+                        }
+                        tabBarVM.registryPath.append(.create)
+                    } label: {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 15))
+                            Text("Create a New Registry")
+                                .font(WSFont.body(14))
+                                .fontWeight(.bold)
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 13)
+                        .background(WSGradient.button)
+                        .clipShape(Capsule(style: .continuous))
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                    
+                    // Join Registry Button
+                    Button {
+                        withAnimation(WSAnimation.spring) {
+                            showCreateJoinOptions = false
+                        }
+                        tabBarVM.registryPath.append(.join)
+                    } label: {
+                        HStack {
+                            Image(systemName: "person.badge.plus.fill")
+                                .font(.system(size: 14))
+                            Text("Join an Existing Registry")
+                                .font(WSFont.body(14))
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundStyle(Color.wsNavy)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 13)
+                        .background(Color.wsSurface)
+                        .overlay(
+                            Capsule(style: .continuous)
+                                .strokeBorder(Color.wsBorder, lineWidth: 1)
+                        )
+                        .clipShape(Capsule(style: .continuous))
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                }
+                
+                // Cancel Action
+                Button {
+                    withAnimation(WSAnimation.spring) {
+                        showCreateJoinOptions = false
+                    }
+                } label: {
+                    Text("Cancel")
+                        .font(WSFont.caption(13))
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.wsTextSecondary)
+                        .padding(.vertical, 4)
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 24)
+            .frame(width: 310)
+            .background(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color.wsBackground)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .strokeBorder(Color.wsAccent.opacity(0.12), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.12), radius: 20, x: 0, y: 10)
+            .transition(.scale(scale: 0.9).combined(with: .opacity))
+        }
+        .ignoresSafeArea()
     }
     
 }

@@ -19,8 +19,8 @@ final class RegistryRepository: ObservableObject {
         let avatar: String
     }
     
-    static let mockUser1 = MockUser(id: "user1", name: "Alex Miller (User 1)", avatar: "person.circle.fill")
-    static let mockUser2 = MockUser(id: "user2", name: "Taylor Swift (User 2)", avatar: "person.circle")
+    static let mockUser1 = MockUser(id: "user1", name: "tester1 (User 1)", avatar: "person.circle.fill")
+    static let mockUser2 = MockUser(id: "user2", name: "Tester2 (User 2)", avatar: "person.circle")
     
     @Published var currentUser: MockUser = mockUser1
     

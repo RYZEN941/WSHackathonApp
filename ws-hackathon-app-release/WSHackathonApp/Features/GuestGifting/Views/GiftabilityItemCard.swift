@@ -48,6 +48,17 @@ struct GiftabilityItemCard: View {
                     Text(String(format: "$%.2f", item.item.price))
                         .font(WSFont.price(15))
                         .foregroundStyle(Color.wsAccent)
+                    
+                    // Social Proof Context
+                    HStack(spacing: 5) {
+                        Image(systemName: "person.2.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(Color.wsTextSecondary)
+                        Text(item.socialProof)
+                            .font(WSFont.caption(11))
+                            .foregroundStyle(Color.wsTextSecondary)
+                            .lineLimit(1)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -62,20 +73,10 @@ struct GiftabilityItemCard: View {
                 .padding(.horizontal, 14)
                 .opacity(0.15)
 
-            // Social proof + CTAs
-            HStack(spacing: 0) {
-                // Social proof
-                HStack(spacing: 5) {
-                    Image(systemName: "person.2.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.wsTextSecondary)
-                    Text(item.socialProof)
-                        .font(WSFont.caption(11))
-                        .foregroundStyle(Color.wsTextSecondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+            // CTAs Row
+            HStack {
+                Spacer()
 
-                // CTAs
                 HStack(spacing: 8) {
                     if item.isGroupGift {
                         Button(action: onContribute) {
@@ -83,8 +84,9 @@ struct GiftabilityItemCard: View {
                                 .font(WSFont.caption(12))
                                 .fontWeight(.semibold)
                                 .foregroundStyle(Color.wsNavy)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
+                                .lineLimit(1)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 9)
                                 .background(Color.wsSurface)
                                 .overlay(
                                     Capsule(style: .continuous)
@@ -102,10 +104,11 @@ struct GiftabilityItemCard: View {
                             Text(item.isGroupGift ? "Buy Full" : "Gift Now")
                                 .font(WSFont.caption(12))
                                 .fontWeight(.semibold)
+                                .lineLimit(1)
                         }
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 9)
                         .background(WSGradient.button)
                         .clipShape(Capsule(style: .continuous))
                     }
@@ -123,23 +126,24 @@ struct GiftabilityItemCard: View {
     private var groupGiftSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             // Progress bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.wsSurface)
-                        .frame(height: 6)
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(
-                            LinearGradient(
-                                colors: item.isNearlyFunded
-                                    ? [Color.wsSuccess, Color.wsSuccess.opacity(0.7)]
-                                    : [Color.wsAccent, Color(red: 0.62, green: 0.44, blue: 0.30)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+            // Progress bar (Solid scale layout, eliminating GeometryReader feedback loops)
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.wsSurface)
+                    .frame(height: 6)
+                
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(
+                        LinearGradient(
+                            colors: item.isNearlyFunded
+                                ? [Color.wsSuccess, Color.wsSuccess.opacity(0.7)]
+                                : [Color.wsAccent, Color(red: 0.62, green: 0.44, blue: 0.30)],
+                            startPoint: .leading,
+                            endPoint: .trailing
                         )
-                        .frame(width: geo.size.width * item.fundingProgress, height: 6)
-                }
+                    )
+                    .frame(height: 6)
+                    .scaleEffect(x: CGFloat(item.fundingProgress), y: 1.0, anchor: .leading)
             }
             .frame(height: 6)
 

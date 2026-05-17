@@ -28,65 +28,78 @@ struct GuestRegistryView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // No-login banner
-                    noLoginBanner
-                        .padding(.horizontal, 20)
-                        .padding(.top, 16)
-                        .padding(.bottom, 12)
+            ZStack {
+                Color.wsBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // No-login banner
+                        noLoginBanner
+                            .padding(.horizontal, 20)
+                            .padding(.top, 16)
+                            .padding(.bottom, 12)
 
-                    // Registry header card
-                    registryHeaderCard
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 20)
+                        // Registry header card
+                        registryHeaderCard
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 20)
 
-                    // Filter chips
-                    filterRow
-                        .padding(.bottom, 16)
+                        // Filter chips
+                        filterRow
+                            .padding(.bottom, 16)
 
-                    // Items
-                    if sortedItems.isEmpty {
-                        emptyFilterState
-                            .padding(.top, 40)
-                    } else {
-                        LazyVStack(spacing: 14) {
-                            ForEach(sortedItems) { giftItem in
-                                GiftabilityItemCard(
-                                    item: giftItem,
-                                    onBuyNow: {
-                                        selectedItem = giftItem
-                                        showDetail = true
-                                    },
-                                    onContribute: {
-                                        selectedItem = giftItem
-                                        showDetail = true
-                                    }
-                                )
-                                .padding(.horizontal, 20)
+                        // Items
+                        if sortedItems.isEmpty {
+                            emptyFilterState
+                                .padding(.top, 40)
+                        } else {
+                            VStack(spacing: 14) {
+                                ForEach(sortedItems) { giftItem in
+                                    GiftabilityItemCard(
+                                        item: giftItem,
+                                        onBuyNow: {
+                                            selectedItem = giftItem
+                                            showDetail = true
+                                        },
+                                        onContribute: {
+                                            selectedItem = giftItem
+                                            showDetail = true
+                                        }
+                                    )
+                                    .padding(.horizontal, 20)
+                                }
                             }
+                            .padding(.bottom, 32)
                         }
-                        .padding(.bottom, 32)
                     }
                 }
             }
-            .background(Color.wsBackground.ignoresSafeArea())
-            .navigationTitle("")
+            .navigationTitle("Guest View")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color.wsBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { dismiss() } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 13, weight: .semibold))
-                        }
-                        .foregroundStyle(Color.wsNavy)
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(Color.wsNavy)
                     }
                 }
-                ToolbarItem(placement: .principal) {
-                    Text("Guest View")
-                        .font(WSFont.subheading(16))
-                        .foregroundStyle(Color.wsNavy)
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 6, height: 6)
+                            .shadow(color: Color.green.opacity(0.8), radius: 3)
+                        
+                        CollaborationFacepileView()
+                    }
+                    .padding(.leading, 8)
+                    .padding(.trailing, 4)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(Color.wsControlFill.opacity(0.7)))
                 }
             }
             .navigationDestination(isPresented: $showDetail) {
@@ -178,9 +191,7 @@ struct GuestRegistryView: View {
 
     private func filterChip(_ filter: GuestFilter) -> some View {
         Button {
-            withAnimation(WSAnimation.spring) {
-                selectedFilter = filter
-            }
+            selectedFilter = filter
         } label: {
             HStack(spacing: 5) {
                 Image(systemName: filter.icon)

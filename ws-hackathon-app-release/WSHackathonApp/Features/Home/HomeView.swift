@@ -61,7 +61,10 @@ struct HomeView: View {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    wishlistToolbarButton
+                    HStack(spacing: 16) {
+                        wishlistToolbarButton
+                        userSwitcherToolbarButton
+                    }
                 }
             }
             .searchable(
