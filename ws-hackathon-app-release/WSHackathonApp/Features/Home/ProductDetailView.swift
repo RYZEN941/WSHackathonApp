@@ -16,6 +16,7 @@ struct ProductDetailView: View {
     
     @State private var showRegistrySelection = false
     @State private var showARView = false
+    @State private var selectedRegistryIds: Set<UUID> = []
 
     private var isWishlisted: Bool {
         wishlistRepository.contains(productId: viewModel.product.id)
@@ -200,7 +201,7 @@ struct ProductDetailView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 28)
                 
-            if !viewModel.similarProducts.isEmpty {
+            if viewModel.isLoadingSimilar || !viewModel.similarProducts.isEmpty {
                 similarItemsSection
             }
         }
@@ -354,15 +355,18 @@ struct ProductDetailView: View {
                 .foregroundStyle(Color.wsNavy)
                 .padding(.top, 10)
             
-            Text("Select which registry you'd like to add this item to.")
+            Text("Select which registries you'd like to add this item to.")
                 .font(WSFont.body(14))
                 .foregroundStyle(Color.wsTextSecondary)
             
             VStack(spacing: 12) {
                 ForEach(viewModel.registries) { registry in
                     Button {
-                        viewModel.addToRegistry(registry.id)
-                        showRegistrySelection = false
+                        if selectedRegistryIds.contains(registry.id) {
+                            selectedRegistryIds.remove(registry.id)
+                        } else {
+                            selectedRegistryIds.insert(registry.id)
+                        }
                     } label: {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
@@ -374,23 +378,69 @@ struct ProductDetailView: View {
                                     .foregroundStyle(Color.wsTextSecondary)
                             }
                             Spacer()
-                            Image(systemName: "plus.circle")
-                                .font(.system(size: 20))
-                                .foregroundStyle(Color.wsAccent)
+                            Image(systemName: selectedRegistryIds.contains(registry.id) ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 22, weight: .semibold))
+                                .foregroundStyle(selectedRegistryIds.contains(registry.id) ? Color.wsAccent : Color.wsMuted)
                         }
                         .padding(16)
-                        .background(Color.wsControlFill)
+                        .background(
+                            selectedRegistryIds.contains(registry.id) ?
+                            Color.wsAccent.opacity(0.06) :
+                            Color.wsControlFill
+                        )
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .strokeBorder(
+                                    selectedRegistryIds.contains(registry.id) ?
+                                    Color.wsAccent.opacity(0.3) :
+                                    Color.clear,
+                                    lineWidth: 1
+                                )
+                        )
                     }
                     .buttonStyle(ScaleButtonStyle())
                 }
             }
             
             Spacer()
+            
+            Button {
+                for registry in viewModel.registries {
+                    let currentlyContains = registry.items.contains(where: { $0.id == viewModel.product.id })
+                    let shouldContain = selectedRegistryIds.contains(registry.id)
+                    
+                    if shouldContain && !currentlyContains {
+                        viewModel.addToRegistry(registry.id)
+                    } else if !shouldContain && currentlyContains {
+                        viewModel.removeFromRegistry(registry.id)
+                    }
+                }
+                showRegistrySelection = false
+            } label: {
+                HStack {
+                    Spacer()
+                    Text("Save Selection")
+                        .font(WSFont.subheading(16))
+                        .bold()
+                    Spacer()
+                }
+                .foregroundStyle(.white)
+                .padding(.vertical, 14)
+                .wsPrimaryButtonBackground(cornerRadius: 12)
+            }
+            .buttonStyle(ScaleButtonStyle())
+            .padding(.bottom, 8)
         }
         .padding(24)
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
+        .onAppear {
+            let containingIds = viewModel.registries.filter { registry in
+                registry.items.contains(where: { $0.id == viewModel.product.id })
+            }.map { $0.id }
+            selectedRegistryIds = Set(containingIds)
+        }
     }
     
     private var similarItemsSection: some View {
@@ -411,17 +461,29 @@ struct ProductDetailView: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 16)
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(viewModel.similarProducts) { similarProduct in
-                        NavigationLink(destination: ProductDetailView(product: similarProduct)) {
-                            SimilarProductCard(product: similarProduct)
+            if viewModel.isLoadingSimilar {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(0..<3, id: \.self) { _ in
+                            similarProductSkeletonCard
                         }
-                        .buttonStyle(PlainButtonStyle())
                     }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 12)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 12)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(viewModel.similarProducts) { similarProduct in
+                            NavigationLink(destination: ProductDetailView(product: similarProduct)) {
+                                SimilarProductCard(product: similarProduct)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 12)
+                }
             }
         }
         .padding(.top, 8)
@@ -480,6 +542,41 @@ struct ProductDetailView: View {
             .shadow(color: Color.wsNavy.opacity(0.04), radius: 8, x: 0, y: 4)
         }
         .buttonStyle(ScaleButtonStyle())
+    }
+    
+    private var similarProductSkeletonCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.wsControlFill.opacity(0.8))
+                .frame(width: 140, height: 110)
+                .overlay {
+                    ProgressView()
+                        .tint(Color.wsAccent)
+                }
+            
+            VStack(alignment: .leading, spacing: 6) {
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(Color.wsControlFill.opacity(0.8))
+                    .frame(width: 120, height: 12)
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(Color.wsControlFill.opacity(0.8))
+                    .frame(width: 80, height: 12)
+            }
+            .frame(height: 36, alignment: .topLeading)
+            
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                .fill(Color.wsControlFill.opacity(0.8))
+                .frame(width: 60, height: 14)
+        }
+        .frame(width: 140)
+        .padding(8)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: Color.wsNavy.opacity(0.04), radius: 6, x: 0, y: 3)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(Color.wsNavy.opacity(0.05), lineWidth: 1)
+        )
     }
 }
 

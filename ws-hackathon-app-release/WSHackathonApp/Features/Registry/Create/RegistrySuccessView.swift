@@ -53,9 +53,8 @@ struct RegistrySuccessView: View {
 
             Spacer()
 
-            WSPrimaryButton(title: "Start Browsing", icon: "house.fill") {
+            WSPrimaryButton(title: "Go to Registry", icon: "gift.fill") {
                 tabBarVM.resetRegistryFlow()
-                tabBarVM.selectTab(.home)
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 48)

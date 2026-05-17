@@ -30,8 +30,17 @@ struct CartView: View {
                                     onAdd: { viewModel.add(item) },
                                     onRemove: { viewModel.removeItem(item) }
                                 )
-                                .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
-                                .listRowBackground(WSCardBackground(cornerRadius: 12))
+                                .padding(16)
+                                .background(Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .strokeBorder(WSGradient.cardStroke, lineWidth: 1)
+                                )
+                                .shadow(color: Color.black.opacity(0.04), radius: 10, y: 4)
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button(role: .destructive) {
                                         withAnimation(.spring(response: 0.35)) {
@@ -41,7 +50,6 @@ struct CartView: View {
                                         Label("Delete", systemImage: "trash")
                                     }
                                 }
-                                
                             }
                         } header: {
                             Text("\(viewModel.items.count) \(viewModel.items.count == 1 ? "Item" : "Items")")
@@ -185,7 +193,7 @@ struct ExpandableRecipeCard: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .background(Color.white)
+                .background(Color.clear)
             }
             .buttonStyle(.plain)
             
@@ -243,6 +251,12 @@ struct ExpandableRecipeCard: View {
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(WSGradient.cardStroke, lineWidth: 1)
+        )
         .shadow(color: Color.black.opacity(0.04), radius: 10, y: 4)
     }
 }

@@ -9,11 +9,8 @@ import Foundation
 enum AppConstants {
     
     enum API {
-        #if targetEnvironment(simulator)
-        static let baseURL = "http://localhost:3001"
-        #else
-        static let baseURL = "http://10.2.4.161:3001"
-        #endif
+        // Deployed backend URL for both Simulator and physical iPhone devices
+        static let baseURL = "https://wshackathonapp.onrender.com"
         static let imageBasePath = baseURL + "/images/"
         static let timeout: TimeInterval = 30
     }
