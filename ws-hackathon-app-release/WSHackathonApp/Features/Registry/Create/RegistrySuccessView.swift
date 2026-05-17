@@ -11,6 +11,7 @@ struct RegistrySuccessView: View {
     @EnvironmentObject var tabBarVM: WSTabBarViewModel
 
     @State private var appeared = false
+    @State private var copied = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -47,11 +48,31 @@ struct RegistrySuccessView: View {
                             .font(WSFont.label(10))
                             .tracking(2)
                             .foregroundStyle(Color.wsMuted)
-                        Text(registryRepo.shareCode)
-                            .font(WSFont.heading(24))
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color.wsNavy)
-                            .tracking(2)
+                        
+                        HStack(spacing: 8) {
+                            Text(registryRepo.shareCode)
+                                .font(WSFont.heading(24))
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.wsNavy)
+                                .tracking(2)
+                            
+                            Button {
+                                UIPasteboard.general.string = registryRepo.shareCode
+                                withAnimation(WSAnimation.spring) {
+                                    copied = true
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                    withAnimation(WSAnimation.spring) {
+                                        copied = false
+                                    }
+                                }
+                            } label: {
+                                Image(systemName: copied ? "checkmark.circle.fill" : "doc.on.doc")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(copied ? Color.wsSuccess : Color.wsAccent)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
                     .padding(.vertical, 16)
                     .padding(.horizontal, 24)

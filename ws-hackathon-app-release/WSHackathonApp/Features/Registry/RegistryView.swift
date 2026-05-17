@@ -246,10 +246,21 @@ private extension RegistryView {
                             .font(WSFont.label(9))
                             .tracking(1)
                             .foregroundStyle(Color.wsTextSecondary)
-                        Text(String(registry.id.uuidString.prefix(8)).uppercased())
-                            .font(WSFont.subheading(14))
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color.wsNavy)
+                        
+                        HStack(spacing: 5) {
+                            Text(String(registry.id.uuidString.prefix(8)).uppercased())
+                                .font(WSFont.subheading(14))
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.wsNavy)
+                            
+                            Image(systemName: "doc.on.doc")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(Color.wsAccent)
+                                .onTapGesture {
+                                    let code = String(registry.id.uuidString.prefix(8)).uppercased()
+                                    UIPasteboard.general.string = code
+                                }
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
