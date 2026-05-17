@@ -1,0 +1,53 @@
+# dependencies
+node_modules/
+
+# logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# build folders
+dist/
+build/
+
+# coverage
+coverage/
+
+# cache
+.cache/
+
+# editor files
+.vscode/
+.idea/
+
+# temporary files
+*.tmp
+*.temp
+
+# next.js
+.next/
+
+# nuxt.js
+.nuxt/
+
+# vite
+vite.svg
+
+# typescript
+*.tsbuildinfo
