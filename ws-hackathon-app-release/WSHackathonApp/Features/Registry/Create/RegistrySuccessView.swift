@@ -41,6 +41,24 @@ struct RegistrySuccessView: View {
                     Text(name)
                         .font(WSFont.body(16))
                         .foregroundStyle(Color.wsTextSecondary)
+                    
+                    VStack(spacing: 4) {
+                        Text("ROOM CODE")
+                            .font(WSFont.label(10))
+                            .tracking(2)
+                            .foregroundStyle(Color.wsMuted)
+                        Text(registryRepo.shareCode)
+                            .font(WSFont.heading(24))
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.wsNavy)
+                            .tracking(2)
+                    }
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 24)
+                    .background(Color.wsSurface)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.wsBorder, lineWidth: 1))
+                    .padding(.top, 16)
                 }
 
                 Text("Start adding gifts your guests will love.")

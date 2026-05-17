@@ -16,6 +16,7 @@ struct HomeView: View {
     
     @State private var selectedProductForRegistry: ProductItem?
     @State private var showRegistrySelection = false
+    @State private var showUserSwitcher = false
 
     private let gridColumns = [
         GridItem(.flexible(), spacing: 16),
@@ -89,6 +90,9 @@ struct HomeView: View {
             .sheet(isPresented: $showRegistrySelection) {
                 registrySelectionSheet
             }
+            .sheet(isPresented: $showUserSwitcher) {
+                UserSwitcherSheet(isPresented: $showUserSwitcher)
+            }
         }
     }
 
@@ -106,44 +110,12 @@ struct HomeView: View {
     }
     
     private var userSwitcherToolbarButton: some View {
-        Menu {
-            Section("Switch Active User Profile") {
-                Button {
-                    switchActiveUser(to: RegistryRepository.mockUser1)
-                } label: {
-                    Label(
-                        RegistryRepository.mockUser1.name,
-                        systemImage: registryRepository.currentUser.id == "user1" ? "checkmark.circle.fill" : "person.circle"
-                    )
-                }
-                
-                Button {
-                    switchActiveUser(to: RegistryRepository.mockUser2)
-                } label: {
-                    Label(
-                        RegistryRepository.mockUser2.name,
-                        systemImage: registryRepository.currentUser.id == "user2" ? "checkmark.circle.fill" : "person.circle"
-                    )
-                }
-            }
+        Button {
+            showUserSwitcher = true
         } label: {
-            HStack(spacing: 4) {
-                Image(systemName: "person.circle")
-                    .font(.system(size: 15, weight: .semibold))
-                
-                Text(registryRepository.currentUser.id == "user1" ? "Alex" : "Taylor")
-                    .font(WSFont.caption(13))
-                    .fontWeight(.bold)
-                
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 7, weight: .bold))
-            }
-            .foregroundStyle(Color.wsNavy)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(Color.wsBackground)
-            .clipShape(Capsule())
-            .overlay(Capsule().strokeBorder(Color.wsBorder, lineWidth: 1))
+            Image(systemName: "person.circle")
+                .font(.system(size: 20, weight: .regular))
+                .foregroundStyle(Color.wsNavy)
         }
     }
 
@@ -568,6 +540,85 @@ private struct CuratedProductCard: View {
                 .frame(width: 170)
             }
             .wsCard()
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+}
+
+struct UserSwitcherSheet: View {
+    @Binding var isPresented: Bool
+    @EnvironmentObject var cartRepository: CartRepository
+    @EnvironmentObject var registryRepository: RegistryRepository
+    @EnvironmentObject var wishlistRepository: WishlistRepository
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                Text("Switch Active Profile")
+                    .font(WSFont.heading(24))
+                    .foregroundStyle(Color.wsNavy)
+                    .padding(.top, 16)
+                
+                VStack(spacing: 16) {
+                    userButton(for: RegistryRepository.mockUser1)
+                    userButton(for: RegistryRepository.mockUser2)
+                }
+                .padding(.horizontal, 24)
+                
+                Spacer()
+            }
+            .background(Color.wsBackground.ignoresSafeArea())
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        isPresented = false
+                    }
+                    .font(WSFont.body(16))
+                    .foregroundStyle(Color.wsNavy)
+                }
+            }
+        }
+        .presentationDetents([.fraction(0.4)])
+        .presentationDragIndicator(.visible)
+    }
+    
+    private func userButton(for user: RegistryRepository.MockUser) -> some View {
+        let isSelected = registryRepository.currentUser.id == user.id
+        
+        return Button {
+            withAnimation(WSAnimation.spring) {
+                registryRepository.switchUser(to: user)
+                cartRepository.switchUser(toUserId: user.id)
+                wishlistRepository.switchUser(toUserId: user.id)
+                isPresented = false
+            }
+        } label: {
+            HStack(spacing: 16) {
+                Image(systemName: isSelected ? "person.crop.circle.fill.badge.checkmark" : "person.crop.circle")
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundStyle(isSelected ? Color.wsAccent : Color.wsMuted)
+                
+                Text(user.name)
+                    .font(WSFont.subheading(18))
+                    .fontWeight(isSelected ? .bold : .medium)
+                    .foregroundStyle(isSelected ? Color.wsNavy : Color.wsTextSecondary)
+                
+                Spacer()
+                
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(Color.wsAccent)
+                }
+            }
+            .padding()
+            .background(isSelected ? Color.wsAccent.opacity(0.1) : Color.wsSurface)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(isSelected ? Color.wsAccent.opacity(0.5) : Color.wsBorder, lineWidth: 1.5)
+            )
         }
         .buttonStyle(ScaleButtonStyle())
     }
