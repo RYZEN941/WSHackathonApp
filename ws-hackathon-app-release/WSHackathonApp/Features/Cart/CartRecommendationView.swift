@@ -46,7 +46,7 @@ struct CartRecommendationView: View {
                         Text(recommendation.reason)
                             .font(WSFont.body(11))
                             .foregroundStyle(Color.wsTextSecondary)
-                            .lineLimit(1)
+                            .lineLimit(2)
                     }
                     
                     Spacer()

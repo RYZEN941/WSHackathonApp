@@ -8,6 +8,7 @@ import SwiftUI
 struct GuestProductDetailView: View {
     let giftItem: GiftabilityItem
     let registry: Registry
+    var onDone: (() -> Void)? = nil
 
     @EnvironmentObject var registryRepo: RegistryRepository
     @State private var isGroupContribute = false
@@ -76,7 +77,8 @@ struct GuestProductDetailView: View {
                 registry: registry,
                 isContribution: isGroupContribute,
                 contributionAmount: isGroupContribute ? (Double(contributionText) ?? 0) : giftItem.item.price,
-                giftMessage: showGiftMessage ? giftMessage : nil
+                giftMessage: showGiftMessage ? giftMessage : nil,
+                onDone: onDone
             )
             .environmentObject(registryRepo)
         }

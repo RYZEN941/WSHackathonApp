@@ -112,7 +112,8 @@ struct GuestRegistryView: View {
                 if let item = selectedItem {
                     GuestProductDetailView(
                         giftItem: item,
-                        registry: registry
+                        registry: registry,
+                        onDone: { showDetail = false }
                     )
                     .environmentObject(registryRepo)
                 }

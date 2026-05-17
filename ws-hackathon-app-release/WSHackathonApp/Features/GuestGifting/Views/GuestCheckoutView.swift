@@ -11,6 +11,7 @@ struct GuestCheckoutView: View {
     let isContribution: Bool
     let contributionAmount: Double
     let giftMessage: String?
+    var onDone: (() -> Void)? = nil
 
     @EnvironmentObject var registryRepo: RegistryRepository
     @State private var guestName: String = ""
@@ -57,7 +58,8 @@ struct GuestCheckoutView: View {
                 registry: registry,
                 guestName: guestName.isEmpty ? "A guest" : guestName,
                 isContribution: isContribution,
-                amount: displayAmount
+                amount: displayAmount,
+                onDone: onDone
             )
             .environmentObject(registryRepo)
         }

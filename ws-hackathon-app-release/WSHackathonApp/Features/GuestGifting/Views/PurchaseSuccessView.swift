@@ -11,6 +11,7 @@ struct PurchaseSuccessView: View {
     let guestName: String
     let isContribution: Bool
     let amount: Double
+    var onDone: (() -> Void)? = nil
 
     @EnvironmentObject var registryRepo: RegistryRepository
     @Environment(\.dismiss) private var dismiss
@@ -73,7 +74,13 @@ struct PurchaseSuccessView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") { dismiss() }
+                Button("Done") {
+                    if let onDone {
+                        onDone()
+                    } else {
+                        dismiss()
+                    }
+                }
                     .font(WSFont.body(15))
                     .foregroundStyle(Color.wsNavy)
             }

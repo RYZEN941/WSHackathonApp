@@ -103,12 +103,20 @@ struct HomeView: View {
         Button {
             showWishlist = true
         } label: {
-            Image(systemName: wishlistRepository.count > 0 ? "heart.fill" : "heart")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(wishlistRepository.count > 0 ? Color.wsAccent : Color.wsCharcoal)
-                .symbolRenderingMode(.hierarchical)
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: wishlistRepository.count > 0 ? "heart.fill" : "heart")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(wishlistRepository.count > 0 ? Color.brown : Color.wsCharcoal)
+                    .symbolRenderingMode(.hierarchical)
+
+                if wishlistRepository.count > 0 {
+                    Circle()
+                        .fill(Color.red)
+                        .frame(width: 8, height: 8)
+                        .offset(x: 4, y: -2)
+                }
+            }
         }
-        .badge(wishlistRepository.count)
         .accessibilityLabel("Wishlist, \(wishlistRepository.count) items")
     }
     
