@@ -13,6 +13,21 @@ final class CartRepository: ObservableObject {
     
     @Published private(set) var items: [CartItem] = []
     
+    private var user1CartItems: [CartItem] = []
+    private var user2CartItems: [CartItem] = []
+    private var currentUserId: String = "user1"
+    
+    func switchUser(toUserId userId: String) {
+        if currentUserId == "user1" {
+            user1CartItems = items
+        } else {
+            user2CartItems = items
+        }
+        
+        currentUserId = userId
+        items = userId == "user1" ? user1CartItems : user2CartItems
+    }
+    
     // MARK: - Add Item
     func add(product: ProductItem, quantity: Int = 1) {
         guard let priceValue = product.price else { return }
@@ -41,6 +56,10 @@ final class CartRepository: ObservableObject {
         }
     }
     
+    func removeCompletely(productId: String) {
+        items.removeAll { $0.id == productId }
+    }
+    
     // MARK: - Total Price
     var totalPrice: Double {
         items.reduce(0) { $0 + ($1.price * Double($1.quantity)) }
@@ -54,5 +73,9 @@ final class CartRepository: ObservableObject {
     func increaseQuantity(productId: String) {
         guard let index = items.firstIndex(where: { $0.id == productId }) else { return }
         items[index].quantity += 1
+    }
+    
+    func clear() {
+        items.removeAll()
     }
 }

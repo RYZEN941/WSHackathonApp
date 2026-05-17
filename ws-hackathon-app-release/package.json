@@ -1,0 +1,7 @@
+{
+  "name": "ws-hackathon-app-tools",
+  "version": "1.0.0",
+  "scripts": {
+    "add-files": "node add_guest_gifting_files.js"
+  }
+}
