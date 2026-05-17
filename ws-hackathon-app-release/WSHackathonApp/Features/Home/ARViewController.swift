@@ -15,8 +15,8 @@ class ARViewController: UIViewController {
     var arView: ARView!
     var instructionLabel: UILabel!
     
-    let modelName: String      // The USDZ file name (e.g. "waffle_maker")
-    let productTitle: String   // The product name (e.g. "Belgian Waffle Maker")
+    let modelName: String      // The USDZ file name
+    let productTitle: String   // The product name 
     
     // Track placed anchors
     private var placedAnchors: [AnchorEntity] = []

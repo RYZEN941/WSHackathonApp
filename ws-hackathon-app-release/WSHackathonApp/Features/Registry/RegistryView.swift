@@ -22,6 +22,7 @@ struct RegistryView: View {
     @State private var showShareSheet = false
     @State private var showCreateJoinOptions = false
     @State private var registryToPreview: Registry? = nil
+    @State private var showInlineTitle = false
     
     private let rowInsets = EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20)
     
@@ -51,8 +52,14 @@ struct RegistryView: View {
                 .padding(.vertical, 20)
             }
             .background(Color.wsBackground.ignoresSafeArea())
-            .navigationTitle(showRegistryDetail ? viewModel.displayTitle : AppStrings.Registry.title)
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle(showRegistryDetail ? (showInlineTitle ? viewModel.displayTitle : "") : AppStrings.Registry.title)
+            .navigationBarTitleDisplayMode(showRegistryDetail ? .inline : .large)
+            .coordinateSpace(name: "registryScroll")
+            .onPreferenceChange(LargeTitleVisibilityKey.self) { isVisible in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showInlineTitle = !isVisible
+                }
+            }
             .toolbar {
                     if showRegistryDetail {
                         ToolbarItem(placement: .topBarTrailing) {
@@ -153,10 +160,28 @@ private extension RegistryView {
     @ViewBuilder
     var registryContent: some View {
         VStack(spacing: 0) {
+            // MARK: - Custom large title (wraps to 2 lines, scrolls away like native large title)
+            Text(viewModel.displayTitle)
+                .font(.system(size: 34, weight: .bold))
+                .foregroundStyle(Color.wsNavy)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.top, 4)
+                .padding(.bottom, 8)
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.preference(
+                            key: LargeTitleVisibilityKey.self,
+                            value: geo.frame(in: .named("registryScroll")).maxY > 44
+                        )
+                    }
+                )
+
             // MARK: - Notifications Banner
             if !registryRepo.notifications.isEmpty {
                 notificationsBanner
-                    .padding(.top, 8)
+                    .padding(.top, 4)
                     .padding(.horizontal, 20)
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
@@ -726,5 +751,14 @@ private struct RegistryReasonCard: View {
         }
         .padding(14)
         .wsCard(cornerRadius: 14)
+    }
+}
+
+// MARK: - Preference Key for large title visibility
+
+private struct LargeTitleVisibilityKey: PreferenceKey {
+    static var defaultValue: Bool = true
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = nextValue()
     }
 }

@@ -116,7 +116,7 @@ struct WSQuantityStepper: View {
     }
 }
 
-// MARK: - Animated swap (plus ↔ stepper)
+// MARK: - Animated swap
 
 struct WSAnimatedControlSlot<Expanded: View, Collapsed: View>: View {
     let isExpanded: Bool

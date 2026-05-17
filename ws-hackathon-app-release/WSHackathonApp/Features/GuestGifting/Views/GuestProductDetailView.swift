@@ -16,6 +16,8 @@ struct GuestProductDetailView: View {
     @State private var giftMessage: String = ""
     @State private var showGiftMessage = false
     @State private var navigateToCheckout = false
+    @State private var showAmountError = false
+    @State private var amountErrorMessage = ""
 
     var meaningfulText: String {
         let title = giftItem.item.title.lowercased()
@@ -79,8 +81,8 @@ struct GuestProductDetailView: View {
             .environmentObject(registryRepo)
         }
         .onAppear {
-            contributionAmount = giftItem.item.price / 2
-            contributionText = String(format: "%.0f", contributionAmount)
+            // Start blank — user enters their own amount
+            contributionText = ""
         }
     }
 
@@ -270,24 +272,59 @@ struct GuestProductDetailView: View {
         .animation(WSAnimation.spring, value: selected)
     }
 
+    private var maxContribution: Double {
+        giftItem.remainingAmount ?? giftItem.item.price
+    }
+
     private var contributionAmountField: some View {
-        HStack {
-            Text("$")
-                .font(WSFont.subheading(18))
-                .foregroundStyle(Color.wsNavy)
-            TextField("Amount", text: $contributionText)
-                .font(WSFont.subheading(18))
-                .keyboardType(.numberPad)
-                .foregroundStyle(Color.wsNavy)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("$")
+                    .font(WSFont.subheading(18))
+                    .foregroundStyle(Color.wsNavy)
+                TextField("Amount", text: $contributionText)
+                    .font(WSFont.subheading(18))
+                    .keyboardType(.numberPad)
+                    .foregroundStyle(Color.wsNavy)
+                    .onChange(of: contributionText) { _, newValue in
+                        let amount = Double(newValue) ?? 0
+                        if amount > maxContribution && !newValue.isEmpty {
+                            amountErrorMessage = "Max contribution is $\(String(format: "%.0f", maxContribution))"
+                            withAnimation(.easeInOut(duration: 0.3)) { showAmountError = true }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                                withAnimation(.easeInOut(duration: 0.3)) { showAmountError = false }
+                            }
+                        } else {
+                            showAmountError = false
+                        }
+                    }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(Color.wsSurface)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(showAmountError ? Color.red.opacity(0.6) : Color.wsBorder, lineWidth: 1)
+            )
+
+            if showAmountError {
+                HStack(spacing: 5) {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .font(.system(size: 12))
+                    Text(amountErrorMessage)
+                        .font(WSFont.caption(12))
+                }
+                .foregroundStyle(Color.red)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+
+            if let remaining = giftItem.remainingAmount {
+                Text("$\(String(format: "%.0f", remaining)) remaining to complete this gift")
+                    .font(WSFont.caption(11))
+                    .foregroundStyle(Color.wsTextSecondary)
+            }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Color.wsSurface)
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(Color.wsBorder, lineWidth: 1)
-        )
     }
 
     private var giftMessageSection: some View {

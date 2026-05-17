@@ -24,8 +24,8 @@ struct PurchaseSuccessView: View {
 
     var headline: String {
         isContribution
-            ? "Thank you for contributing! 🎉"
-            : "Your gift is on its way! 🎁"
+            ? "Thank you for contributing!"
+            : "Your gift is on its way!"
     }
 
     var subheadline: String {
@@ -178,7 +178,7 @@ struct PurchaseSuccessView: View {
 
     private var actionCards: some View {
         VStack(spacing: 12) {
-            // Discover WS
+            
             actionCard(
                 icon: "bag.fill",
                 title: "Discover Williams-Sonoma",
@@ -186,7 +186,6 @@ struct PurchaseSuccessView: View {
                 color: Color.wsNavy
             ) { dismiss() }
 
-            // Key Rewards
             actionCard(
                 icon: "star.fill",
                 title: "Join Key Rewards",

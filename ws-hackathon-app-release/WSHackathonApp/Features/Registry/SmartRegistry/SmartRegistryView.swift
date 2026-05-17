@@ -20,7 +20,7 @@ struct SmartRegistryView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 28) {
                     // MARK: - AI Header
-                    aiHeader
+                    aiHeader 
                     
                     // MARK: - Occasion Badge
                     occasionBadge

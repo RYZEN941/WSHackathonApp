@@ -52,7 +52,6 @@ final class RegistryRepository: ObservableObject {
     // MARK: - Initializer & Seeding
     
     init() {
-        // Seed default registry for User 1 to make it immediately visual and impressive
         let seedId = UUID()
         let seedRegistry = Registry(
             id: seedId,

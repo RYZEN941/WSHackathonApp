@@ -12,6 +12,7 @@ struct RegistryItem: Identifiable {
     let price: Double
     let imageUrl: String?
     var quantity: Int
+    
     // Group gifting
     var groupFunded: Double? = nil   // amount already contributed
     var groupTotal: Double? = nil    // total item price when used as group gift

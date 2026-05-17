@@ -21,7 +21,6 @@ struct ShareRegistrySheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 28) {
-                    // Header
                     VStack(spacing: 8) {
                         Text("Share Your Registry")
                             .font(WSFont.heading(26))
@@ -35,10 +34,8 @@ struct ShareRegistrySheet: View {
                     }
                     .padding(.top, 8)
 
-                    // QR Code
                     qrCodeCard
 
-                    // Action Buttons
                     VStack(spacing: 12) {
                         // Copy Link
                         Button {

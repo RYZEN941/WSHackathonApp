@@ -27,7 +27,7 @@ struct WSHackathonAppApp: App {
         }
     }
 
-    /// Handles wshackathon://registry/{CODE} deep links.
+    // Handles wshackathon://registry/{CODE} deep links.
     private func handleDeepLink(_ url: URL) {
         guard url.scheme == "wshackathon",
               url.host == "registry" else { return }

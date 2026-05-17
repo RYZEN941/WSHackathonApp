@@ -125,8 +125,6 @@ struct GiftabilityItemCard: View {
 
     private var groupGiftSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // Progress bar
-            // Progress bar (Solid scale layout, eliminating GeometryReader feedback loops)
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.wsSurface)

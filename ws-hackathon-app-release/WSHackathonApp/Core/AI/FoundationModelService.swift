@@ -16,7 +16,6 @@ final class FoundationModelService {
     private init() {}
     
     // MARK: - Availability Check
-    
     var isAvailable: Bool {
         if #available(iOS 26, *) {
             return SystemLanguageModel.default.availability == .available
@@ -25,7 +24,6 @@ final class FoundationModelService {
     }
     
     // MARK: - Smart Cart Recommendations
-    
     func generateCartRecommendations(
         cartItems: [CartItem],
         allProducts: [ProductItem]
@@ -69,14 +67,12 @@ final class FoundationModelService {
     }
     
     // MARK: - Smart Registry Recommendations
-    
     func generateRegistryRecommendations(
         occasion: RegistryEvent,
         budget: Double,
         categories: Set<String>,
         allProducts: [ProductItem]
     ) async -> [GiftBundleDisplay] {
-        // Try Foundation Models first
         if #available(iOS 26, *), isAvailable {
             do {
                 let response = try await generateRegistryAI(
@@ -116,7 +112,6 @@ final class FoundationModelService {
     }
     
     // MARK: - Private AI Methods
-    
     @available(iOS 26, *)
     private func generateCartAI(
         cartItems: [CartItem],
@@ -251,12 +246,10 @@ final class FoundationModelService {
     }
     
     // MARK: - Recipe Recommendations
-    
     func generateRecipeRecommendations(
         recipe: Recipe,
         allProducts: [ProductItem]
     ) async -> RecipeRecommendation {
-        // Try Foundation Models first
         if #available(iOS 26, *), isAvailable {
             do {
                 let response = try await generateRecipeAI(recipe: recipe, allProducts: allProducts)
@@ -321,12 +314,10 @@ final class FoundationModelService {
     }
     
     // MARK: - Similar Products Recommendations
-    
     func generateSimilarProductRecommendations(
         product: ProductItem,
         allProducts: [ProductItem]
     ) async -> [ProductItem] {
-        // Try Foundation Models first
         if #available(iOS 26, *), isAvailable {
             do {
                 let response = try await generateSimilarProductsAI(product: product, allProducts: allProducts)
@@ -341,7 +332,6 @@ final class FoundationModelService {
             }
         }
         
-        // Fallback rule-based logic
         return allProducts.filter { other in
             other.id != product.id && (
                 other.productType == product.productType ||

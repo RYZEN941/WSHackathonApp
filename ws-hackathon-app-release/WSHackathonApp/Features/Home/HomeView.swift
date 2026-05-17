@@ -238,7 +238,7 @@ struct HomeView: View {
         
         if let imageURL = imageURL {
             CustomAsyncImage(url: imageURL)
-                .overlay(Color.black.opacity(0.05)) // Subtle overlay to ensure text readability on all product images
+                .overlay(Color.black.opacity(0.05))
         } else {
             Image(AppImages.Registry.header)
                 .resizable()
@@ -354,10 +354,17 @@ struct HomeView: View {
                             .shadow(color: Color.black.opacity(0.05), radius: 8, y: 4)
                         }
                         .buttonStyle(ScaleButtonStyle())
+                        .scrollTransition { content, phase in
+                            content
+                                .scaleEffect(phase.isIdentity ? 1.0 : 0.95)
+                                .opacity(phase.isIdentity ? 1.0 : 0.75)
+                        }
                     }
                 }
+                .scrollTargetLayout()
                 .padding(.horizontal, 16)
             }
+            .scrollTargetBehavior(.viewAligned)
         }
     }
 
@@ -524,7 +531,6 @@ private struct CuratedProductCard: View {
                     )
                 )
 
-                // Info Section
                 VStack(alignment: .leading, spacing: 10) {
                     Text(product.title)
                         .font(WSFont.body(13))

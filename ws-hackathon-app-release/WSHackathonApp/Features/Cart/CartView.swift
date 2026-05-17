@@ -279,19 +279,14 @@ struct CartCheckoutView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // Order Summary
                 orderSummaryCard
 
-                // Shipping Details
                 detailsSection
 
-                // Account benefits note
                 benefitsNote
 
-                // Apple Pay Button
                 applePayButton
 
-                // Terms note
                 Text("By purchasing, you agree to Williams-Sonoma's Terms of Service and Privacy Policy.")
                     .font(WSFont.caption(11))
                     .foregroundStyle(Color.wsMuted)
@@ -535,20 +530,16 @@ struct CartPurchaseSuccessView: View {
         ZStack {
             Color.wsBackground.ignoresSafeArea()
 
-            // Confetti
             ForEach(particles) { p in
                 ConfettiDot(particle: p)
             }
 
             ScrollView {
                 VStack(spacing: 32) {
-                    // Animated success header
                     successIconHeader
 
-                    // Success message
                     successMessage
 
-                    // Receipt card
                     receiptCard
 
                     Spacer(minLength: 40)

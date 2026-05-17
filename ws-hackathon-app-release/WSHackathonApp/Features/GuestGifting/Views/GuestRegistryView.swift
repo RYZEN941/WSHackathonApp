@@ -13,6 +13,7 @@ struct GuestRegistryView: View {
     @State private var selectedFilter: GuestFilter = .mostGiftable
     @State private var selectedItem: GiftabilityItem? = nil
     @State private var showDetail = false
+    @State private var showCollaborators = false
 
     private var sortedItems: [GiftabilityItem] {
         let all = GiftabilityEngine.sortedItems(
@@ -88,18 +89,23 @@ struct GuestRegistryView: View {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 6, height: 6)
-                            .shadow(color: Color.green.opacity(0.8), radius: 3)
-                        
-                        CollaborationFacepileView()
+                    Button {
+                        showCollaborators = true
+                    } label: {
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(Color.green)
+                                .frame(width: 6, height: 6)
+                                .shadow(color: Color.green.opacity(0.8), radius: 3)
+                            
+                            CollaborationFacepileView()
+                        }
+                        .padding(.leading, 8)
+                        .padding(.trailing, 4)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.wsControlFill.opacity(0.7)))
                     }
-                    .padding(.leading, 8)
-                    .padding(.trailing, 4)
-                    .padding(.vertical, 4)
-                    .background(Capsule().fill(Color.wsControlFill.opacity(0.7)))
+                    .buttonStyle(.plain)
                 }
             }
             .navigationDestination(isPresented: $showDetail) {
@@ -111,7 +117,95 @@ struct GuestRegistryView: View {
                     .environmentObject(registryRepo)
                 }
             }
+            .sheet(isPresented: $showCollaborators) {
+                collaboratorsSheet
+            }
         }
+    }
+
+    // MARK: - Collaborators Sheet
+
+    private var collaboratorsSheet: some View {
+        let facepileUsers: [FacepileUser] = [
+            FacepileUser(name: "Alex Miller", initials: "AM", color: Color(red: 0.76, green: 0.60, blue: 0.42)),
+            FacepileUser(name: "Taylor Swift", initials: "TS", color: Color(red: 0.08, green: 0.18, blue: 0.36)),
+            FacepileUser(name: "Jordan Smith", initials: "JS", color: Color(red: 0.18, green: 0.36, blue: 0.27)),
+            FacepileUser(name: "Morgan Jones", initials: "MJ", color: Color(red: 0.48, green: 0.12, blue: 0.24)),
+            FacepileUser(name: "Casey Davis", initials: "CD", color: Color(red: 0.36, green: 0.24, blue: 0.48))
+        ]
+        return NavigationStack {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 8, height: 8)
+                        .shadow(color: Color.green.opacity(0.8), radius: 4)
+                    Text("\(facepileUsers.count) people viewing this registry")
+                        .font(WSFont.caption(12))
+                        .foregroundStyle(Color.wsTextSecondary)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 16)
+
+                Divider().opacity(0.12)
+
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(facepileUsers) { user in
+                            HStack(spacing: 14) {
+                                Text(user.initials)
+                                    .font(WSFont.label(13))
+                                    .bold()
+                                    .foregroundStyle(.white)
+                                    .frame(width: 40, height: 40)
+                                    .background(Circle().fill(user.color))
+                                    .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
+                                    .shadow(color: Color.black.opacity(0.1), radius: 4)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(user.name)
+                                        .font(WSFont.subheading(15))
+                                        .foregroundStyle(Color.wsNavy)
+                                    Text("Currently browsing")
+                                        .font(WSFont.caption(12))
+                                        .foregroundStyle(Color.wsTextSecondary)
+                                }
+
+                                Spacer()
+
+                                Circle()
+                                    .fill(Color.green)
+                                    .frame(width: 8, height: 8)
+                                    .shadow(color: Color.green.opacity(0.6), radius: 3)
+                            }
+                            .padding(14)
+                            .background(Color.wsSurface)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .strokeBorder(Color.wsBorder.opacity(0.5), lineWidth: 1)
+                            )
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+                    .padding(.bottom, 32)
+                }
+            }
+            .background(Color.wsBackground.ignoresSafeArea())
+            .navigationTitle("Active Viewers")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { showCollaborators = false }
+                        .font(WSFont.body(16))
+                        .foregroundStyle(Color.wsNavy)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 
     // MARK: - Subviews

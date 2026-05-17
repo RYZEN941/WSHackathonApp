@@ -9,7 +9,6 @@ import Foundation
 import FoundationModels
 
 // MARK: - Smart Cart AI Response
-
 @available(iOS 26, *)
 @Generable
 struct CartAIResponse {
@@ -24,7 +23,6 @@ struct CartAIResponse {
 }
 
 // MARK: - Smart Registry AI Response
-
 @available(iOS 26, *)
 @Generable
 struct RegistryAIResponse {
@@ -47,7 +45,6 @@ struct GiftBundle {
 
 
 // MARK: - Recipe AI Response
-
 @available(iOS 26, *)
 @Generable
 struct RecipeAIResponse {
@@ -62,7 +59,6 @@ struct RecipeAIResponse {
 }
 
 // MARK: - Cart Generated Recipe AI Response
-
 @available(iOS 26, *)
 @Generable
 struct CartRecipeAIResponse {
@@ -80,7 +76,6 @@ struct CartRecipeAIResponse {
 }
 
 // MARK: - Display Models (non-Generable, for UI)
-
 struct CartRecommendation: Identifiable {
     let id = UUID()
     let detectedIntent: String
@@ -114,7 +109,6 @@ struct CartGeneratedRecipe: Identifiable {
 }
 
 // MARK: - Similar Products AI Response
-
 @available(iOS 26, *)
 @Generable
 struct SimilarProductsAIResponse {

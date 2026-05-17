@@ -10,8 +10,7 @@ import Foundation
 enum FallbackRecommendationEngine {
     
     // MARK: - Smart Cart Fallback
-    
-    /// Finds complementary products based on shared patterns, collections, and product types.
+    // Finds complementary products based on shared patterns, collections, and product types.
     static func cartRecommendations(
         cartItems: [CartItem],
         allProducts: [ProductItem]
@@ -85,8 +84,7 @@ enum FallbackRecommendationEngine {
     }
     
     // MARK: - Smart Registry Fallback
-    
-    /// Generates gift bundles based on budget and category preferences.
+    // Generates gift bundles based on budget and category preferences.
     static func registryRecommendations(
         occasion: RegistryEvent,
         budget: Double,
@@ -144,7 +142,6 @@ enum FallbackRecommendationEngine {
     }
     
     // MARK: - Recipe Fallback
-    
     static func recipeRecommendations(
         recipe: Recipe,
         allProducts: [ProductItem]
@@ -181,7 +178,6 @@ enum FallbackRecommendationEngine {
     }
     
     // MARK: - Helpers
-    
     private static func detectIntent(patterns: Set<String>, types: Set<String>) -> String {
         if types.contains("pizza-stone") || types.contains("pizza-cutter") { return "Pizza Night" }
         if patterns.contains("bakeware") || types.contains("baking-sheet") { return "Baking & Pastry Making" }

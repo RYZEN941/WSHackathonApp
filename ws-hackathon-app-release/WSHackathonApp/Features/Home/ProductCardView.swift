@@ -42,7 +42,6 @@ struct ProductCardView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("View \(product.title)")
 
-            // Wishlist heart — top right
             HStack {
                 Spacer()
                 WSWishlistHeartButton(isActive: isWishlisted) {
@@ -65,7 +64,6 @@ struct ProductCardView: View {
         )
     }
 
-    /// Single morphing button: circle → pill with checkmark when added to registry
     private var registryButton: some View {
         Button(action: inRegistry ? onRemoveFromRegistry : onAddToRegistry) {
             HStack(spacing: 5) {
