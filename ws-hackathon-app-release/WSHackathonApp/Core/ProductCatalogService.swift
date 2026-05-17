@@ -31,10 +31,7 @@ final class ProductCatalogService: ObservableObject {
             let dtos: [ProductItemDTO] = try await APIClient.shared.request(Endpoint.products())
             self.products = dtos.map { ProductItem(from: $0) }
         } catch {
-            print("ProductCatalogService: Network failed, loading local data: \(error)")
-            if let localDTOs: [ProductItemDTO] = LocalDataManager.load("skus.json") {
-                self.products = localDTOs.map { ProductItem(from: $0) }
-            }
+            print("ProductCatalogService: Network failed: \(error)")
         }
         
         isLoaded = true

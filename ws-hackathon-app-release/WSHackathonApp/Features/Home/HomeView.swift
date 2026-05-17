@@ -48,9 +48,6 @@ struct HomeView: View {
             .wsAppBackground()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    userSwitcherToolbarButton
-                }
                 ToolbarItem(placement: .principal) {
                     VStack(spacing: 2) {
                         Text("WILLIAMS SONOMA")

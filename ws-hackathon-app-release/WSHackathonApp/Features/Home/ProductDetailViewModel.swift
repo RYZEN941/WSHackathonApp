@@ -96,7 +96,8 @@ final class ProductDetailViewModel: ObservableObject {
                 let dtos: [ProductItemDTO] = try await APIClient.shared.request(Endpoint.products())
                 allProducts = dtos.map { ProductItem(from: $0) }
             } catch {
-                allProducts = ProductItem.allMocks
+                print("ProductDetailViewModel API fetch failed: \(error)")
+                allProducts = []
             }
             self.similarProducts = await FoundationModelService.shared.generateSimilarProductRecommendations(
                 product: product,

@@ -15,6 +15,7 @@ struct ProductDetailView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var showRegistrySelection = false
+    @State private var showARView = false
 
     private var isWishlisted: Bool {
         wishlistRepository.contains(productId: viewModel.product.id)
@@ -73,6 +74,12 @@ struct ProductDetailView: View {
         .animation(WSAnimation.spring, value: viewModel.inRegistry)
         .sheet(isPresented: $showRegistrySelection) {
             registrySelectionSheet
+        }
+        .fullScreenCover(isPresented: $showARView) {
+            if let modelName = viewModel.product.usdzModelName {
+                ARModelView(modelName: modelName, productTitle: viewModel.product.title)
+                    .ignoresSafeArea()
+            }
         }
     }
 
@@ -180,6 +187,13 @@ struct ProductDetailView: View {
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 8)
+
+            if viewModel.product.usdzModelName != nil {
+                arVisualizationSection
+                    .padding(.horizontal, 24)
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
+            }
 
             registrySection
                 .padding(.horizontal, 24)
@@ -412,6 +426,60 @@ struct ProductDetailView: View {
         }
         .padding(.top, 8)
         .padding(.bottom, 16)
+    }
+
+    private var arVisualizationSection: some View {
+        Button {
+            showARView = true
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(WSGradient.button)
+                        .frame(width: 46, height: 46)
+                    Image(systemName: "arkit")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+                
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Visualize in AR")
+                        .font(WSFont.subheading(16))
+                        .foregroundStyle(Color.wsNavy)
+                        .fontWeight(.bold)
+                    Text("See this item in 3D inside your room")
+                        .font(WSFont.caption(12))
+                        .foregroundStyle(Color.wsTextSecondary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "arrow.up.right.and.arrow.down.left.rectangle")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.wsAccent)
+                    .padding(8)
+                    .background(Color.wsControlFill)
+                    .clipShape(Circle())
+            }
+            .padding(14)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.wsBackground)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.wsAccent.opacity(0.4), Color.wsNavy.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.5
+                    )
+            )
+            .shadow(color: Color.wsNavy.opacity(0.04), radius: 8, x: 0, y: 4)
+        }
+        .buttonStyle(ScaleButtonStyle())
     }
 }
 

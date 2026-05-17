@@ -142,8 +142,19 @@ class HomeViewModel: ObservableObject {
             let dtos: [ProductItemDTO] = try await APIClient.shared.request(Endpoint.products())
             self.products = dtos.map { ProductItem(from: $0) }
         } catch {
-            print("API fetch failed, falling back to local mocks: \(error)")
-            self.products = ProductItem.allMocks
+            print("API fetch failed, inserting offline AR test product: \(error)")
+            self.products = [
+                ProductItem(
+                    id: "test_waffle_maker_ar",
+                    title: "All-Clad 4-Square Belgian Waffle Maker [AR TEST]",
+                    price: 129.95,
+                    path: "https://images.unsplash.com/photo-1594756114149-aa32364affc9?auto=format&fit=crop&q=80&w=600&h=600",
+                    availability: "ON_HAND",
+                    productType: "waffle-maker",
+                    brand: "All-Clad",
+                    material: "Stainless Steel"
+                )
+            ]
         }
         
         isLoading = false

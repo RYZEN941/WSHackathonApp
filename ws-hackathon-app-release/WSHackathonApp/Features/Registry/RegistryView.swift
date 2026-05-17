@@ -30,10 +30,6 @@ struct RegistryView: View {
         NavigationStack(path: $tabBarVM.registryPath) {
             ScrollView {
                 VStack(spacing: 20) {
-                    if !showRegistryDetail {
-                        collaborationDashboardCard
-                    }
-                    
                     if viewModel.hasRegistry {
                         if showRegistryDetail {
                             registryContent

@@ -75,6 +75,41 @@ struct ProductItem: Identifiable, Hashable {
         let cleanedPath = path.hasPrefix("/") ? String(path.dropFirst()) : path
         return cleanedPath
     }
+    
+    var usdzModelName: String? {
+        let typeStr = productType?.lowercased() ?? ""
+        let titleStr = title.lowercased()
+        
+        if typeStr.contains("waffle") || titleStr.contains("waffle") {
+            return "waffle_maker"
+        }
+        if typeStr.contains("pasta") || titleStr.contains("pasta") {
+            return "pasta_maker"
+        }
+        if typeStr.contains("espresso") || titleStr.contains("espresso") {
+            return "espresso_machine"
+        }
+        if typeStr.contains("coffee") || titleStr.contains("coffee") {
+            return "coffee_maker"
+        }
+        if typeStr.contains("processor") || titleStr.contains("processor") {
+            return "food_processor"
+        }
+        if typeStr.contains("ice cream") || titleStr.contains("ice cream") || typeStr.contains("ice-cream") || titleStr.contains("ice-cream") {
+            return "ice_cream_maker"
+        }
+        if typeStr.contains("rice") || titleStr.contains("rice") {
+            return "rice_cooker"
+        }
+        if typeStr.contains("frother") || titleStr.contains("frother") {
+            return "milk_frother"
+        }
+        if typeStr.contains("juicer") || titleStr.contains("juicer") || typeStr.contains("juic") || titleStr.contains("juic") {
+            return "fruit_juicer"
+        }
+        
+        return nil
+    }
 }
 
 extension ProductItem {

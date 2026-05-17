@@ -12,7 +12,7 @@
 
 /* Begin PBXFileReference section */
 		75B248F32F7FAA4E00AD2FA7 /* WSHackathonApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WSHackathonApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		8C902E762FB86400006DE341 /* FoundationModels.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FoundationModels.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk/System/Library/Frameworks/FoundationModels.framework; sourceTree = DEVELOPER_DIR; };
+		8C902E762FB86400006DE341 /* FoundationModels.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FoundationModels.framework; path = System/Library/Frameworks/FoundationModels.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
