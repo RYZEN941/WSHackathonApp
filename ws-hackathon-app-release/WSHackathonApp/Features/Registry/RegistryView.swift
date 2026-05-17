@@ -9,6 +9,7 @@ enum RegistryRoute: Hashable {
     case create
     case success
     case smartRegistry
+    case join
 }
 
 struct RegistryView: View {
@@ -20,9 +21,7 @@ struct RegistryView: View {
     @State private var showRegistryDetail = false
     @State private var showShareSheet = false
     @State private var showGuestView = false
-    @State private var roomCodeInput = ""
-    @State private var joinStatusMessage: String? = nil
-    @State private var joinSuccess = false
+    @State private var showCreateJoinOptions = false
     
     private let rowInsets = EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20)
     
@@ -30,10 +29,6 @@ struct RegistryView: View {
         NavigationStack(path: $tabBarVM.registryPath) {
             ScrollView {
                 VStack(spacing: 20) {
-                    if !showRegistryDetail {
-                        collaborationDashboardCard
-                    }
-                    
                     if viewModel.hasRegistry {
                         if showRegistryDetail {
                             registryContent
@@ -82,7 +77,7 @@ struct RegistryView: View {
                     } else {
                         ToolbarItem(placement: .topBarTrailing) {
                             Button {
-                                tabBarVM.registryPath.append(.create)
+                                showCreateJoinOptions = true
                             } label: {
                                 Image(systemName: "plus")
                                     .font(.system(size: 16, weight: .bold))
@@ -113,7 +108,18 @@ struct RegistryView: View {
                     RegistrySuccessView()
                 case .smartRegistry:
                     SmartRegistryView()
+                case .join:
+                    JoinRegistryView()
                 }
+            }
+            .confirmationDialog("Registry Options", isPresented: $showCreateJoinOptions, titleVisibility: .visible) {
+                Button("Create a Registry") {
+                    tabBarVM.registryPath.append(.create)
+                }
+                Button("Join a Registry") {
+                    tabBarVM.registryPath.append(.join)
+                }
+                Button("Cancel", role: .cancel) {}
             }
         }
         .onAppear {
@@ -224,15 +230,30 @@ private extension RegistryView {
         } label: {
             VStack(alignment: .leading, spacing: 16) {
                 // Header Section
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(registry.date.formatted(date: .abbreviated, time: .omitted))
-                        .font(WSFont.caption(12))
-                        .foregroundStyle(Color.wsAccent)
-                        .fontWeight(.medium)
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(registry.date.formatted(date: .abbreviated, time: .omitted))
+                            .font(WSFont.caption(12))
+                            .foregroundStyle(Color.wsAccent)
+                            .fontWeight(.medium)
+                        
+                        Text(registry.displayName)
+                            .font(WSFont.subheading(20))
+                            .foregroundStyle(Color.wsNavy)
+                    }
                     
-                    Text(registry.displayName)
-                        .font(WSFont.subheading(20))
-                        .foregroundStyle(Color.wsNavy)
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("ROOM CODE")
+                            .font(WSFont.label(9))
+                            .tracking(1)
+                            .foregroundStyle(Color.wsTextSecondary)
+                        Text(String(registry.id.uuidString.prefix(8)).uppercased())
+                            .font(WSFont.subheading(14))
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.wsNavy)
+                    }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
@@ -544,193 +565,6 @@ private extension RegistryView {
         .buttonStyle(.plain)
     }
     
-    // MARK: - Collaboration Hub
-    
-    var collaborationDashboardCard: some View {
-        VStack(spacing: 16) {
-            // User Switcher Header
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 6) {
-                    Image(systemName: "person.2.fill")
-                        .foregroundStyle(WSGradient.accent)
-                        .font(.system(size: 14, weight: .bold))
-                    Text("Collaborator Hub")
-                        .font(WSFont.subheading(15))
-                        .foregroundStyle(Color.wsNavy)
-                }
-                Text("Co-author lists and manage gifts together in real-time.")
-                    .font(WSFont.caption(12))
-                    .foregroundStyle(Color.wsTextSecondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            
-            Divider().opacity(0.1)
-            
-            // Switch User Buttons
-            HStack(spacing: 12) {
-                // User 1 Button
-                userSwitchButton(
-                    user: RegistryRepository.mockUser1,
-                    color: Color(red: 0.35, green: 0.25, blue: 0.55)
-                )
-                
-                // User 2 Button
-                userSwitchButton(
-                    user: RegistryRepository.mockUser2,
-                    color: Color(red: 0.62, green: 0.44, blue: 0.30)
-                )
-            }
-            
-            // Room Actions
-            VStack(spacing: 12) {
-                if viewModel.hasRegistry {
-                    // Show our room code to invite others
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("YOUR ROOM CODE")
-                                .font(WSFont.label(9))
-                                .tracking(1)
-                                .foregroundStyle(Color.wsTextSecondary)
-                            Text(registryRepo.shareCode)
-                                .font(WSFont.subheading(16))
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.wsNavy)
-                                .tracking(1.5)
-                        }
-                        
-                        Spacer()
-                        
-                        Button {
-                            UIPasteboard.general.string = registryRepo.shareCode
-                            joinStatusMessage = "Code Copied!"
-                            joinSuccess = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                joinStatusMessage = nil
-                            }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "doc.on.doc.fill")
-                                    .font(.caption)
-                                Text("Copy")
-                                    .font(WSFont.caption(12))
-                                    .fontWeight(.bold)
-                            }
-                            .foregroundStyle(Color.wsNavy)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.wsBackground)
-                            .clipShape(Capsule())
-                            .overlay(Capsule().strokeBorder(Color.wsBorder, lineWidth: 1))
-                        }
-                    }
-                    .padding(12)
-                    .background(Color.wsBackground.opacity(0.4))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                }
-                
-                // Input to join another room
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("JOIN A COLLABORATION ROOM")
-                        .font(WSFont.label(9))
-                        .tracking(1)
-                        .foregroundStyle(Color.wsTextSecondary)
-                    
-                    HStack(spacing: 10) {
-                        TextField("Enter 8-digit Room Code", text: $roomCodeInput)
-                            .font(WSFont.body(14))
-                            .padding(.horizontal, 12)
-                            .frame(height: 42)
-                            .background(Color.wsBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.wsBorder, lineWidth: 1))
-                            .autocorrectionDisabled()
-                            .textInputAutocapitalization(.characters)
-                        
-                        Button {
-                            guard !roomCodeInput.isEmpty else { return }
-                            withAnimation(WSAnimation.spring) {
-                                let success = registryRepo.joinRegistry(by: roomCodeInput)
-                                if success {
-                                    joinStatusMessage = "Successfully Joined Room!"
-                                    joinSuccess = true
-                                    roomCodeInput = ""
-                                    showRegistryDetail = true // open the joined registry instantly!
-                                } else {
-                                    joinStatusMessage = "Invalid Room Code!"
-                                    joinSuccess = false
-                                }
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                withAnimation { joinStatusMessage = nil }
-                            }
-                        } label: {
-                            Text("Join")
-                                .font(WSFont.subheading(14))
-                                .fontWeight(.bold)
-                                .foregroundStyle(.white)
-                                .frame(width: 70, height: 42)
-                                .background(WSGradient.button)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        .disabled(roomCodeInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    }
-                }
-                
-                if let message = joinStatusMessage {
-                    HStack(spacing: 6) {
-                        Image(systemName: joinSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                            .font(.caption)
-                            .foregroundStyle(joinSuccess ? Color.wsSuccess : Color.wsAccent)
-                        Text(message)
-                            .font(WSFont.caption(12))
-                            .fontWeight(.medium)
-                            .foregroundStyle(joinSuccess ? Color.wsSuccess : Color.wsAccent)
-                        Spacer()
-                    }
-                    .padding(.top, 4)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                }
-            }
-        }
-        .padding(16)
-        .background(WSCardBackground(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(Color.wsNavy.opacity(0.06), lineWidth: 1)
-        )
-        .padding(.horizontal, 20)
-    }
-    
-    private func userSwitchButton(user: RegistryRepository.MockUser, color: Color) -> some View {
-        let isSelected = registryRepo.currentUser.id == user.id
-        
-        return Button {
-            withAnimation(WSAnimation.spring) {
-                registryRepo.switchUser(to: user)
-                showRegistryDetail = false
-            }
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: isSelected ? "person.crop.circle.fill.badge.checkmark" : "person.crop.circle")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(isSelected ? color : Color.wsMuted)
-                
-                Text(user.id == "user1" ? "Alex (User 1)" : "Taylor (User 2)")
-                    .font(WSFont.caption(13))
-                    .fontWeight(isSelected ? .bold : .medium)
-                    .foregroundStyle(isSelected ? Color.wsNavy : Color.wsTextSecondary)
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 44)
-            .background(isSelected ? color.opacity(0.08) : Color.wsBackground)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(isSelected ? color.opacity(0.4) : Color.wsBorder, lineWidth: 1.5)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }
-        .buttonStyle(ScaleButtonStyle())
-    }
 }
 
 
