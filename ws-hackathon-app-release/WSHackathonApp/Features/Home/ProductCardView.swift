@@ -42,24 +42,13 @@ struct ProductCardView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("View \(product.title)")
 
-            HStack(alignment: .top) {
+            // Wishlist heart — top right
+            HStack {
+                Spacer()
                 WSWishlistHeartButton(isActive: isWishlisted) {
                     withAnimation(WSAnimation.spring) {
                         wishlistRepository.toggle(product)
                     }
-                }
-
-                Spacer()
-
-                HStack(spacing: 6) {
-                    if inRegistry {
-                        registryBadge
-                            .transition(.asymmetric(
-                                insertion: .wsBadgeInsert,
-                                removal: .opacity
-                            ))
-                    }
-                    registryButton
                 }
             }
             .padding(10)
@@ -76,41 +65,36 @@ struct ProductCardView: View {
         )
     }
 
-    private var registryBadge: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "gift.fill")
-                .font(.system(size: 10, weight: .semibold))
-            Text("\(registryQuantity)")
-                .font(WSFont.caption(11))
-                .contentTransition(.numericText())
-        }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 9)
-        .padding(.vertical, 6)
-        .background(WSGradient.button)
-        .clipShape(Capsule(style: .continuous))
-    }
-
+    /// Single morphing button: circle → pill with checkmark when added to registry
     private var registryButton: some View {
         Button(action: inRegistry ? onRemoveFromRegistry : onAddToRegistry) {
-            Image(systemName: inRegistry ? "gift.fill" : "gift")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(inRegistry ? .white : Color.wsCharcoal)
-                .frame(width: 34, height: 34)
-                .background {
-                    if inRegistry {
-                        WSGradient.button
-                    } else {
-                        Color.wsControlFill
-                    }
+            HStack(spacing: 5) {
+                Image(systemName: "gift.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                if inRegistry {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .transition(.scale.combined(with: .opacity))
                 }
-                .clipShape(Circle())
-                .overlay(
-                    Circle()
-                        .strokeBorder(Color.wsNavy.opacity(inRegistry ? 0 : 0.12), lineWidth: 1)
-                )
+            }
+            .foregroundStyle(inRegistry ? .white : Color.wsCharcoal)
+            .padding(.horizontal, inRegistry ? 14 : 10)
+            .frame(height: 34)
+            .background {
+                if inRegistry {
+                    WSGradient.button
+                } else {
+                    Color.wsControlFill
+                }
+            }
+            .clipShape(Capsule(style: .continuous))
+            .overlay(
+                Capsule(style: .continuous)
+                    .strokeBorder(Color.wsNavy.opacity(inRegistry ? 0 : 0.12), lineWidth: 1)
+            )
         }
         .buttonStyle(ScaleButtonStyle())
+        .animation(WSAnimation.spring, value: inRegistry)
         .accessibilityLabel(inRegistry ? "Remove from registry" : "Add to registry")
     }
 
@@ -126,17 +110,22 @@ struct ProductCardView: View {
             }
             .buttonStyle(.plain)
 
-            HStack(alignment: .center, spacing: 6) {
-                if let price = product.price {
-                    Text(price, format: .currency(code: "USD"))
-                        .font(WSFont.price(15))
-                        .foregroundStyle(Color.wsNavy)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                }
+            // Price
+            if let price = product.price {
+                Text(price, format: .currency(code: "USD"))
+                    .font(WSFont.price(15))
+                    .foregroundStyle(Color.wsNavy)
+                    .fixedSize(horizontal: true, vertical: false)
+            }
 
-                Spacer(minLength: 4)
+            // Bottom row: registry button (left) + cart control (right)
+            HStack(alignment: .center) {
+                // Registry pill — bottom left
+                registryButton
 
+                Spacer()
+
+                // Cart stepper / plus button — right
                 WSAnimatedControlSlot(isExpanded: inCart) {
                     WSQuantityStepper(
                         quantity: quantity,

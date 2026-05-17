@@ -13,7 +13,15 @@ final class RegistryRepository: ObservableObject {
     
     @Published var registries: [Registry] = []
     @Published var selectedRegistryId: UUID?
-    
+    @Published var notifications: [CoupleNotification] = []
+    @Published var pendingGuestViewCode: String? = nil
+    /// itemId → (funded, total) for group gifts
+    @Published var groupGiftData: [String: (funded: Double, total: Double)] = [
+        // Demo seeds – partially funded group gifts visible immediately
+        "2453926": (funded: 220.0, total: 299.95),   // Staub Dutch Oven
+        "181543":  (funded: 90.0,  total: 180.0)     // Staub Skillet
+    ]
+
     var currentRegistry: Registry? {
         registries.first { $0.id == selectedRegistryId } ?? registries.first
     }
@@ -118,5 +126,57 @@ final class RegistryRepository: ObservableObject {
             }
             registries[index] = registry
         }
+    }
+
+    // MARK: - Guest Gifting
+
+    /// Deterministic share code derived from registry UUID (first 8 hex chars, uppercased).
+    var shareCode: String {
+        guard let registry = currentRegistry else { return "DEMO1234" }
+        return String(registry.id.uuidString.prefix(8)).uppercased()
+    }
+
+    /// Records a full purchase by a guest: marks item purchased, fires notification.
+    func recordPurchase(gift: GuestGift) {
+        let notification = CoupleNotification(
+            itemTitle: itemTitle(for: gift.itemId),
+            guestName: gift.guestName,
+            isContribution: gift.isContribution
+        )
+        notifications.insert(notification, at: 0)
+
+        guard let regIdx = registries.firstIndex(where: { $0.id == gift.registryId }) else { return }
+        if let itemIdx = registries[regIdx].items.firstIndex(where: { $0.id == gift.itemId }) {
+            if gift.isContribution {
+                // Update group funding
+                let current = groupGiftData[gift.itemId] ?? (funded: 0, total: registries[regIdx].items[itemIdx].price)
+                groupGiftData[gift.itemId] = (
+                    funded: min(current.total, current.funded + gift.contributionAmount),
+                    total:  current.total
+                )
+            } else {
+                // Full purchase
+                registries[regIdx].items[itemIdx].isPurchased = true
+            }
+        }
+    }
+
+    /// Mark an item as a group gift with a target total (couple action).
+    func setGroupGift(itemId: String, total: Double) {
+        groupGiftData[itemId] = (funded: groupGiftData[itemId]?.funded ?? 0, total: total)
+    }
+
+    var unreadNotificationCount: Int {
+        notifications.filter { !$0.isRead }.count
+    }
+
+    func markAllNotificationsRead() {
+        for i in notifications.indices {
+            notifications[i].isRead = true
+        }
+    }
+
+    private func itemTitle(for itemId: String) -> String {
+        currentRegistry?.items.first(where: { $0.id == itemId })?.title ?? "item"
     }
 }

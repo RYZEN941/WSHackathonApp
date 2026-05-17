@@ -18,6 +18,8 @@ struct RegistryView: View {
     @EnvironmentObject var tabBarVM: WSTabBarViewModel
     
     @State private var showRegistryDetail = false
+    @State private var showShareSheet = false
+    @State private var showGuestView = false
     
     private let rowInsets = EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20)
     
@@ -51,13 +53,24 @@ struct RegistryView: View {
             .toolbar {
                     if showRegistryDetail {
                         ToolbarItem(placement: .topBarTrailing) {
-                            Button("Delete", role: .destructive) {
-                                withAnimation(WSAnimation.spring) {
-                                    viewModel.deleteRegistry(using: registryRepo)
-                                    showRegistryDetail = false
+                            HStack(spacing: 14) {
+                                // Share button
+                                Button {
+                                    showShareSheet = true
+                                } label: {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .font(.system(size: 15, weight: .semibold))
+                                        .foregroundStyle(Color.wsNavy)
                                 }
+                                // Delete button
+                                Button("Delete", role: .destructive) {
+                                    withAnimation(WSAnimation.spring) {
+                                        viewModel.deleteRegistry(using: registryRepo)
+                                        showRegistryDetail = false
+                                    }
+                                }
+                                .font(WSFont.body(15))
                             }
-                            .font(WSFont.body(15))
                         }
                     } else {
                         ToolbarItem(placement: .topBarTrailing) {
@@ -99,8 +112,28 @@ struct RegistryView: View {
         .onAppear {
             viewModel.bind(repository: registryRepo)
         }
+        .onChange(of: registryRepo.pendingGuestViewCode) { _, code in
+            if code != nil {
+                showGuestView = true
+                registryRepo.pendingGuestViewCode = nil
+            }
+        }
         .animation(WSAnimation.spring, value: viewModel.hasRegistry)
         .animation(WSAnimation.spring, value: showRegistryDetail)
+        .sheet(isPresented: $showShareSheet) {
+            if let registry = registryRepo.currentRegistry {
+                ShareRegistrySheet(
+                    registryName: registry.displayName,
+                    shareCode: registryRepo.shareCode
+                )
+            }
+        }
+        .fullScreenCover(isPresented: $showGuestView) {
+            if let registry = registryRepo.currentRegistry {
+                GuestRegistryView(registry: registry)
+                    .environmentObject(registryRepo)
+            }
+        }
     }
 }
 
@@ -110,6 +143,20 @@ private extension RegistryView {
     @ViewBuilder
     var registryContent: some View {
         VStack(spacing: 0) {
+            // MARK: - Notifications Banner
+            if !registryRepo.notifications.isEmpty {
+                notificationsBanner
+                    .padding(.top, 8)
+                    .padding(.horizontal, 20)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+
+            // MARK: - Guest Preview Button
+            guestPreviewButton
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                .padding(.bottom, 4)
+
             // MARK: - Header with AI Button and Budget
             VStack(spacing: 16) {
                 aiGiftFinderButton
@@ -377,7 +424,120 @@ private extension RegistryView {
         .cornerRadius(12)
         .padding(.horizontal, 16)
     }
+
+    // MARK: - Notifications Banner
+
+    var notificationsBanner: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                HStack(spacing: 6) {
+                    Image(systemName: "bell.fill")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.wsAccent)
+                    Text("Gift Updates")
+                        .font(WSFont.subheading(14))
+                        .foregroundStyle(Color.wsNavy)
+                    if registryRepo.unreadNotificationCount > 0 {
+                        Text("\(registryRepo.unreadNotificationCount)")
+                            .font(WSFont.label(10))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(Color.wsAccent)
+                            .clipShape(Capsule())
+                    }
+                }
+                Spacer()
+                Button("Mark all read") {
+                    withAnimation(WSAnimation.spring) {
+                        registryRepo.markAllNotificationsRead()
+                    }
+                }
+                .font(WSFont.caption(12))
+                .foregroundStyle(Color.wsTextSecondary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+
+            Divider().opacity(0.12)
+
+            ForEach(registryRepo.notifications.prefix(3)) { notification in
+                HStack(spacing: 10) {
+                    Circle()
+                        .fill(notification.isRead ? Color.clear : Color.wsAccent)
+                        .frame(width: 7, height: 7)
+                    Text(notification.message)
+                        .font(WSFont.body(13))
+                        .foregroundStyle(notification.isRead ? Color.wsTextSecondary : Color.wsNavy)
+                        .lineLimit(1)
+                    Spacer()
+                    Text(notification.timestamp, style: .relative)
+                        .font(WSFont.caption(11))
+                        .foregroundStyle(Color.wsMuted)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                if notification.id != registryRepo.notifications.prefix(3).last?.id {
+                    Divider().opacity(0.08).padding(.horizontal, 14)
+                }
+            }
+        }
+        .background(WSCardBackground(cornerRadius: 14))
+        .animation(WSAnimation.spring, value: registryRepo.notifications.count)
+    }
+
+    // MARK: - Guest Preview Button
+
+    var guestPreviewButton: some View {
+        Button {
+            showGuestView = true
+        } label: {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.wsAccent.opacity(0.9), Color(red: 0.62, green: 0.44, blue: 0.30)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 40, height: 40)
+                    Image(systemName: "person.fill.viewfinder")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Preview Guest View")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    Text("See how guests experience your registry")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white)
+                    .shadow(color: Color.wsAccent.opacity(0.12), radius: 6, x: 0, y: 2)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.wsAccent.opacity(0.2), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
 }
+
 
 // MARK: - Reason Card
 

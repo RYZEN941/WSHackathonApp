@@ -82,25 +82,25 @@ struct WSQuantityStepper: View {
         HStack(spacing: 0) {
             Button(action: onDecrement) {
                 Image(systemName: decrementIcon)
-                    .font(.system(size: 12, weight: .semibold))
-                    .frame(width: 34, height: 34)
+                    .font(.system(size: 11, weight: .semibold))
+                    .frame(width: 28, height: 32)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .foregroundStyle(decrementTint)
 
             Text("\(quantity)")
-                .font(WSFont.subheading(14))
+                .font(WSFont.subheading(13))
                 .foregroundStyle(Color.wsNavy)
-                .frame(minWidth: 26)
+                .frame(minWidth: 20)
                 .multilineTextAlignment(.center)
                 .contentTransition(.numericText())
                 .animation(WSAnimation.quickSpring, value: quantity)
 
             Button(action: onIncrement) {
                 Image(systemName: "plus")
-                    .font(.system(size: 12, weight: .semibold))
-                    .frame(width: 34, height: 34)
+                    .font(.system(size: 11, weight: .semibold))
+                    .frame(width: 28, height: 32)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
