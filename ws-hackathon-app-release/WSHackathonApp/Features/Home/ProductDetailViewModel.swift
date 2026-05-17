@@ -13,6 +13,8 @@ final class ProductDetailViewModel: ObservableObject {
 
     @Published private(set) var cartRevision = 0
     @Published private(set) var registriesRevision = 0
+    @Published var similarProducts: [ProductItem] = []
+    @Published var isLoadingSimilar = false
 
     private var cartRepository: CartRepository?
     private var registryRepository: RegistryRepository?
@@ -84,5 +86,23 @@ final class ProductDetailViewModel: ObservableObject {
                 }
             }
         }
+    }
+    
+    func fetchSimilarProducts() async {
+        isLoadingSimilar = true
+        do {
+            let allProducts: [ProductItem]
+            do {
+                let dtos: [ProductItemDTO] = try await APIClient.shared.request(Endpoint.products())
+                allProducts = dtos.map { ProductItem(from: $0) }
+            } catch {
+                allProducts = ProductItem.allMocks
+            }
+            self.similarProducts = await FoundationModelService.shared.generateSimilarProductRecommendations(
+                product: product,
+                allProducts: allProducts
+            )
+        }
+        isLoadingSimilar = false
     }
 }

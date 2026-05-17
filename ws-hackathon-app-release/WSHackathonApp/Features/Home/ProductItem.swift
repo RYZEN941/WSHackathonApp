@@ -62,6 +62,9 @@ struct ProductItem: Identifiable, Hashable {
     
     var imageURL: URL? {
         if let imageUrl = path {
+            if imageUrl.hasPrefix("http") {
+                return URL(string: imageUrl)
+            }
             return URL(string: AppConstants.API.imageBasePath + imageUrl)
         }
         return nil
@@ -72,6 +75,129 @@ struct ProductItem: Identifiable, Hashable {
         let cleanedPath = path.hasPrefix("/") ? String(path.dropFirst()) : path
         return cleanedPath
     }
+}
+
+extension ProductItem {
+    static let allMocks: [ProductItem] = [
+        ProductItem(
+            id: "2505456",
+            title: "Williams Sonoma End-Grain Cutting Board, Acacia",
+            price: 129.95,
+            path: "https://images.unsplash.com/photo-1594756114149-aa32364affc9?auto=format&fit=crop&q=80&w=600&h=600",
+            availability: "ON_HAND",
+            productType: "cutting-boards-storage",
+            pattern: "cutlery",
+            brand: "williams-sonoma",
+            material: "acacia",
+            allProductTypes: "cutting-boards-storage"
+        ),
+        ProductItem(
+            id: "6121370",
+            title: "Williams Sonoma Board Oil",
+            price: 10.95,
+            path: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&q=80&w=600&h=600",
+            availability: "ON_HAND",
+            productType: "cutting-board-oil",
+            pattern: "homekeeping",
+            brand: "williams-sonoma",
+            allProductTypes: "cutting-board-oil"
+        ),
+        ProductItem(
+            id: "6247040",
+            title: "Hold Everything Lidded Ceramic Bowl, Ashwood",
+            price: 89.95,
+            path: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?auto=format&fit=crop&q=80&w=600&h=600",
+            availability: "ON_HAND",
+            productType: "tabletop-serveware-bowl",
+            pattern: "homekeeping",
+            collection: "[he-pantry, he-fridge]",
+            brand: "hold-everything",
+            allProductTypes: "tabletop-serveware-bowl"
+        ),
+        ProductItem(
+            id: "1341411",
+            title: "Apilco Tradition Porcelain Cup & Saucer",
+            price: 34.95,
+            path: "https://images.unsplash.com/photo-1517256064527-09c53b2d0bc6?auto=format&fit=crop&q=80&w=600&h=600",
+            availability: "ON_HAND",
+            productType: "cups-and-saucers",
+            pattern: "[tabletop, glassware]",
+            collection: "apilco-tradition",
+            brand: "apilco",
+            allProductTypes: "[cups-and-saucers, tea-cups]"
+        ),
+        ProductItem(
+            id: "2453926",
+            title: "Staub Enameled Cast Iron Round Dutch Oven",
+            price: 299.95,
+            path: "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&q=80&w=600&h=600",
+            availability: "ON_HAND",
+            productType: "dutch-ovens",
+            pattern: "cookware",
+            collection: "staub-cast-iron",
+            brand: "staub",
+            allProductTypes: "dutch-ovens"
+        ),
+        ProductItem(
+            id: "8381456",
+            title: "Cuisinart PerfecTemp Coffee Maker, 14-cup",
+            price: 119.95,
+            path: "https://images.unsplash.com/photo-1572119363156-e21226a2ee4f?auto=format&fit=crop&q=80&w=600&h=600",
+            availability: "ON_HAND",
+            productType: "coffee-maker",
+            pattern: "electrics",
+            collection: "cuisinart-coffee",
+            brand: "cuisinart",
+            allProductTypes: "coffee-maker"
+        ),
+        ProductItem(
+            id: "8227593",
+            title: "Hold Everything Lazy Susan, Walnut, 10\"",
+            price: 59.95,
+            path: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1?auto=format&fit=crop&q=80&w=600&h=600",
+            availability: "ON_HAND",
+            productType: "lazy-susan",
+            pattern: "homekeeping",
+            collection: "he-countertop",
+            brand: "hold-everything",
+            allProductTypes: "lazy-susan"
+        ),
+        ProductItem(
+            id: "5001660",
+            title: "Williams Sonoma Organic House Extra Virgin Olive Oil",
+            price: 38.95,
+            path: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=600&h=600",
+            availability: "ON_HAND",
+            productType: "oil",
+            pattern: "food",
+            brand: "williams-sonoma",
+            allProductTypes: "oil"
+        ),
+        ProductItem(
+            id: "9670912",
+            title: "Dorset Martini Glasses, Set of 4",
+            price: 179.80,
+            path: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&q=80&w=600&h=600",
+            availability: "ON_HAND",
+            productType: "bar-glasses-martini",
+            pattern: "[tabletop, glassware]",
+            collection: "dorset",
+            brand: "williams-sonoma",
+            allProductTypes: "bar-glasses-martini"
+        ),
+        ProductItem(
+            id: "181543",
+            title: "Staub Enameled Cast Iron Traditional Deep Skillet",
+            price: 180.00,
+            path: "https://images.unsplash.com/photo-1585325701956-60dd9c8553bc?auto=format&fit=crop&q=80&w=600&h=600",
+            availability: "ON_HAND",
+            productType: "fry-pans-skillets",
+            pattern: "cookware",
+            collection: "staub-cast-iron",
+            brand: "staub",
+            allProductTypes: "fry-pans-skillets"
+        )
+    ]
 }
 
 extension ProductItem {

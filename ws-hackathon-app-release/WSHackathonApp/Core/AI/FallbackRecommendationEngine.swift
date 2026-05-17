@@ -143,16 +143,54 @@ enum FallbackRecommendationEngine {
         return bundles
     }
     
+    // MARK: - Recipe Fallback
+    
+    static func recipeRecommendations(
+        recipe: Recipe,
+        allProducts: [ProductItem]
+    ) -> RecipeRecommendation {
+        let title = recipe.title.lowercased()
+        var recommendedTypes: [String] = []
+        var message = "Check out these essentials that might help you prepare this recipe!"
+        
+        if title.contains("coq au vin") || title.contains("braise") {
+            recommendedTypes.append("dutch-ovens")
+            message = "Looks like you might need a Dutch Oven for this classic braise!"
+        } else if title.contains("steak") || title.contains("sear") {
+            recommendedTypes.append("fry-pans-skillets")
+            message = "A high-quality skillet is essential for the perfect sear."
+        } else if title.contains("salad") || title.contains("chop") {
+            recommendedTypes.append("cutting-boards-storage")
+            message = "Make prep easier with a solid cutting board."
+        }
+        
+        // If no specific match, default to a general tool
+        if recommendedTypes.isEmpty {
+            recommendedTypes.append("cutting-boards-storage")
+        }
+        
+        let matchedProducts = allProducts.filter { product in
+            guard let pt = product.productType else { return false }
+            return recommendedTypes.contains(pt)
+        }.prefix(2)
+        
+        return RecipeRecommendation(
+            detectedMessage: message,
+            products: Array(matchedProducts)
+        )
+    }
+    
     // MARK: - Helpers
     
     private static func detectIntent(patterns: Set<String>, types: Set<String>) -> String {
-        if patterns.contains("cookware") { return "Cookware Collection" }
-        if patterns.contains("electrics") || types.contains("coffee-maker") { return "Coffee & Kitchen Setup" }
-        if patterns.contains("tabletop") || patterns.contains("glassware") { return "Dining & Entertaining" }
-        if patterns.contains("food") { return "Gourmet Essentials" }
-        if patterns.contains("homekeeping") { return "Home Organization" }
-        if patterns.contains("cutlery") { return "Prep & Cutting Essentials" }
-        return "Your Collection"
+        if types.contains("pizza-stone") || types.contains("pizza-cutter") { return "Pizza Night" }
+        if patterns.contains("bakeware") || types.contains("baking-sheet") { return "Baking & Pastry Making" }
+        if patterns.contains("electrics") || types.contains("coffee-maker") { return "Sunday Brunch" }
+        if patterns.contains("tabletop") || patterns.contains("glassware") { return "Hosting a Dinner Party" }
+        if patterns.contains("food") { return "Cooking a Gourmet Meal" }
+        if patterns.contains("cookware") || types.contains("dutch-ovens") { return "Making a Braise or Stew" }
+        if patterns.contains("cutlery") { return "Prep Work for a Big Meal" }
+        return "Cooking Project"
     }
     
     private static func categoryMatchesProductType(category: String, productType: String) -> Bool {

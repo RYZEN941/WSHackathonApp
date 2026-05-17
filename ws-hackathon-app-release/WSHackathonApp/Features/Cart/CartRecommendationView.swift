@@ -10,36 +10,59 @@ struct CartRecommendationView: View {
     let onAddProduct: (ProductItem) -> Void
     let onAddAll: () -> Void
     @State private var addedProductIds: Set<String> = []
+    @State private var isExpanded = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // MARK: - Header
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 6) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(WSGradient.accent)
-                    
-                    Text(AppStrings.SmartCart.aiPowered)
-                        .font(WSFont.label(9))
-                        .foregroundStyle(Color.white.opacity(0.8))
-                        .tracking(1.5)
+            Button {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    isExpanded.toggle()
                 }
-                
-                Text(recommendation.detectedIntent.uppercased())
-                    .font(WSFont.heading(17))
-                    .foregroundStyle(Color.white)
-                    .tracking(0.5)
-                
-                Text(recommendation.reason)
-                    .font(WSFont.body(12))
-                    .foregroundStyle(Color.white.opacity(0.75))
-                    .lineLimit(1)
+            } label: {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.wsSurface)
+                            .frame(width: 36, height: 36)
+                        
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.wsAccent)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("INSPIRED BY YOUR CART")
+                            .font(WSFont.caption(9))
+                            .foregroundStyle(Color.wsAccent)
+                            .textCase(.uppercase)
+                            .tracking(1.5)
+                        
+                        Text(recommendation.detectedIntent.uppercased())
+                            .font(WSFont.heading(15))
+                            .foregroundStyle(Color.wsNavy)
+                            .tracking(0.5)
+                        
+                        Text(recommendation.reason)
+                            .font(WSFont.body(11))
+                            .foregroundStyle(Color.wsTextSecondary)
+                            .lineLimit(1)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .foregroundStyle(Color.wsTextSecondary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.white)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(WSGradient.button)
+            .buttonStyle(.plain)
+            
+            // MARK: - Expanded Content
+            if isExpanded {
             
             // MARK: - Product Cards
             ScrollView(.horizontal, showsIndicators: false) {
@@ -76,17 +99,15 @@ struct CartRecommendationView: View {
                 .padding(.bottom, 16)
                 .background(Color.white)
             }
+            }
         }
         .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .strokeBorder(Color.wsNavy.opacity(0.08), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(WSGradient.cardStroke, lineWidth: 1)
         )
-        // Set insets to 0 to let the card expand fully to the list's safe area boundaries
-        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
+        .shadow(color: Color.black.opacity(0.04), radius: 10, y: 4)
     }
     
     private func recommendationCard(product: ProductItem) -> some View {

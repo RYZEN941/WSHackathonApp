@@ -16,6 +16,9 @@ final class CartViewModel: ObservableObject {
     @Published private(set) var recommendation: CartRecommendation?
     @Published private(set) var isLoadingRecommendations = false
     
+    @Published private(set) var generatedRecipe: CartGeneratedRecipe?
+    @Published private(set) var isGeneratingRecipe = false
+    
     private var cancellable: AnyCancellable?
     private var recommendationCancellable: AnyCancellable?
     private var repository: CartRepository?
@@ -25,6 +28,7 @@ final class CartViewModel: ObservableObject {
     private var recommendationTask: Task<Void, Never>?
     
     func bind(repository: CartRepository) {
+        guard self.repository == nil else { return }
         self.repository = repository
         self.items = repository.items
         
@@ -51,6 +55,10 @@ final class CartViewModel: ObservableObject {
     
     var totalPriceText: String {
         String(format: "$%.2f", repository?.totalPrice ?? 0)
+    }
+    
+    var totalPrice: Double {
+        repository?.totalPrice ?? 0
     }
     
     var showRecommendations: Bool {
@@ -84,6 +92,10 @@ final class CartViewModel: ObservableObject {
         self.recommendation = nil
     }
     
+    func clearCart() {
+        repository?.clear()
+    }
+    
     // MARK: - Private
     
     private var debounceWorkItem: DispatchWorkItem?
@@ -105,27 +117,40 @@ final class CartViewModel: ObservableObject {
         
         guard !items.isEmpty else {
             recommendation = nil
+            generatedRecipe = nil
             return
         }
         
         isLoadingRecommendations = true
+        isGeneratingRecipe = true
         
         recommendationTask = Task {
-            let result = await aiService.generateCartRecommendations(
+            async let recommendationsResult = aiService.generateCartRecommendations(
                 cartItems: items,
                 allProducts: catalogService.products
             )
             
+            async let recipeResult = aiService.generateCartRecipe(
+                cartItems: items
+            )
+            
+            let result = await recommendationsResult
+            let generated = await recipeResult
+            
             guard !Task.isCancelled else { return }
             
-            if !result.products.isEmpty {
-                withAnimation(.easeInOut(duration: 0.3)) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                if !result.products.isEmpty {
                     self.recommendation = result
+                } else {
+                    self.recommendation = nil
                 }
-            } else {
-                self.recommendation = nil
+                
+                self.generatedRecipe = generated
             }
+            
             self.isLoadingRecommendations = false
+            self.isGeneratingRecipe = false
         }
     }
 }
