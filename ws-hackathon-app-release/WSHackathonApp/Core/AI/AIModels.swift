@@ -45,6 +45,40 @@ struct GiftBundle {
     var productIds: [String]
 }
 
+
+// MARK: - Recipe AI Response
+
+@available(iOS 26, *)
+@Generable
+struct RecipeAIResponse {
+    @Guide(description: "A short, friendly message explaining what equipment was found missing for this recipe")
+    var detectedMessage: String
+    
+    @Guide(description: "List of general tool names needed for the recipe that the user might not have, e.g., 'Dutch Oven', 'Chef\\'s Knife'")
+    var requiredTools: [String]
+    
+    @Guide(description: "List of specific product IDs from the catalog that match the required tools")
+    var recommendedProductIds: [String]
+}
+
+// MARK: - Cart Generated Recipe AI Response
+
+@available(iOS 26, *)
+@Generable
+struct CartRecipeAIResponse {
+    @Guide(description: "A creative title for the recipe based on the cart ingredients/tools, e.g. 'Homemade Neapolitan Pizza'")
+    var title: String
+    
+    @Guide(description: "A short, appetizing description of the recipe")
+    var description: String
+    
+    @Guide(description: "List of required ingredients (including standard pantry staples)")
+    var ingredients: [String]
+    
+    @Guide(description: "Step-by-step cooking instructions")
+    var instructions: [String]
+}
+
 // MARK: - Display Models (non-Generable, for UI)
 
 struct CartRecommendation: Identifiable {
@@ -63,4 +97,27 @@ struct GiftBundleDisplay: Identifiable {
     var totalPrice: Double {
         products.compactMap { $0.price }.reduce(0, +)
     }
+}
+
+struct RecipeRecommendation: Identifiable {
+    let id = UUID()
+    let detectedMessage: String
+    let products: [ProductItem]
+}
+
+struct CartGeneratedRecipe: Identifiable {
+    let id = UUID()
+    let title: String
+    let description: String
+    let ingredients: [String]
+    let instructions: [String]
+}
+
+// MARK: - Similar Products AI Response
+
+@available(iOS 26, *)
+@Generable
+struct SimilarProductsAIResponse {
+    @Guide(description: "List of product IDs from the catalog that are highly similar or complementary to the selected product")
+    var recommendedProductIds: [String]
 }

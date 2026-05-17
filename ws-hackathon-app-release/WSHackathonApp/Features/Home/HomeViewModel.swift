@@ -142,8 +142,8 @@ class HomeViewModel: ObservableObject {
             let dtos: [ProductItemDTO] = try await APIClient.shared.request(Endpoint.products())
             self.products = dtos.map { ProductItem(from: $0) }
         } catch {
-            print(error)
-            errorMessage = "Failed to load products"
+            print("API fetch failed, falling back to local mocks: \(error)")
+            self.products = ProductItem.allMocks
         }
         
         isLoading = false

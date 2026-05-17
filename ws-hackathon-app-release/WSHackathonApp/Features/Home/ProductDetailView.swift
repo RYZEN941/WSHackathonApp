@@ -65,6 +65,9 @@ struct ProductDetailView: View {
                 cartRepository: cartRepository,
                 registryRepository: registryRepository
             )
+            Task {
+                await viewModel.fetchSimilarProducts()
+            }
         }
         .animation(WSAnimation.spring, value: viewModel.inCart)
         .animation(WSAnimation.spring, value: viewModel.inRegistry)
@@ -182,6 +185,10 @@ struct ProductDetailView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 8)
                 .padding(.bottom, 28)
+                
+            if !viewModel.similarProducts.isEmpty {
+                similarItemsSection
+            }
         }
         .background {
             WSCardBackground(cornerRadius: 28)
@@ -370,5 +377,104 @@ struct ProductDetailView: View {
         .padding(24)
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
+    }
+    
+    private var similarItemsSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(WSGradient.accent)
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("You Might Also Like")
+                        .font(WSFont.subheading(16))
+                        .foregroundStyle(Color.wsNavy)
+                }
+                Text("AI-curated matching culinary companion recommendations")
+                    .font(WSFont.caption(12))
+                    .foregroundStyle(Color.wsTextSecondary)
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 16)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(viewModel.similarProducts) { similarProduct in
+                        NavigationLink(destination: ProductDetailView(product: similarProduct)) {
+                            SimilarProductCard(product: similarProduct)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 12)
+            }
+        }
+        .padding(.top, 8)
+        .padding(.bottom, 16)
+    }
+}
+
+struct SimilarProductCard: View {
+    let product: ProductItem
+    @EnvironmentObject private var cartRepository: CartRepository
+    
+    private var isInCart: Bool {
+        cartRepository.items.contains(where: { $0.id == product.id })
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ZStack(alignment: .topTrailing) {
+                CustomAsyncImage(url: product.imageURL)
+                    .frame(width: 140, height: 110)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                
+                // Swiggy-style Add button
+                Button {
+                    withAnimation(WSAnimation.spring) {
+                        if isInCart {
+                            cartRepository.remove(productId: product.id)
+                        } else {
+                            cartRepository.add(product: product)
+                        }
+                    }
+                } label: {
+                    Image(systemName: isInCart ? "checkmark.circle.fill" : "plus.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(isInCart ? Color.wsSuccess : Color.wsAction)
+                        .background(Circle().fill(.white))
+                        .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 2)
+                }
+                .padding(6)
+            }
+            .frame(width: 140, height: 110)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(product.title)
+                    .font(WSFont.subheading(13))
+                    .foregroundStyle(Color.wsNavy)
+                    .lineLimit(2)
+                    .frame(height: 36, alignment: .topLeading)
+                    .multilineTextAlignment(.leading)
+                
+                if let price = product.price {
+                    Text(price, format: .currency(code: "USD"))
+                        .font(WSFont.body(13))
+                        .bold()
+                        .foregroundStyle(Color.wsAction)
+                }
+            }
+            .padding(.horizontal, 4)
+        }
+        .frame(width: 140)
+        .padding(8)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: Color.wsNavy.opacity(0.04), radius: 6, x: 0, y: 3)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(Color.wsNavy.opacity(0.05), lineWidth: 1)
+        )
     }
 }

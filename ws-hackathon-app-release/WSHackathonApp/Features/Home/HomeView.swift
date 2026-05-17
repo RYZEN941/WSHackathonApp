@@ -29,8 +29,8 @@ struct HomeView: View {
                     if viewModel.isLoading && viewModel.products.isEmpty {
                         loadingView
                     } else {
-                        if viewModel.searchText.isEmpty {
-                            heroBanner
+                        if viewModel.searchText.isEmpty && viewModel.selectedCategory == nil {
+                            trendingRecipesSection
                             curatedSection
                         }
                         
@@ -48,6 +48,9 @@ struct HomeView: View {
             .wsAppBackground()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    userSwitcherToolbarButton
+                }
                 ToolbarItem(placement: .principal) {
                     VStack(spacing: 2) {
                         Text("WILLIAMS SONOMA")
@@ -70,6 +73,9 @@ struct HomeView: View {
             )
             .navigationDestination(for: ProductItem.self) { product in
                 ProductDetailView(product: product)
+            }
+            .navigationDestination(for: Recipe.self) { recipe in
+                RecipeView(recipe: recipe)
             }
             .navigationDestination(isPresented: $showWishlist) {
                 WishlistView()
@@ -100,6 +106,56 @@ struct HomeView: View {
         }
         .badge(wishlistRepository.count)
         .accessibilityLabel("Wishlist, \(wishlistRepository.count) items")
+    }
+    
+    private var userSwitcherToolbarButton: some View {
+        Menu {
+            Section("Switch Active User Profile") {
+                Button {
+                    switchActiveUser(to: RegistryRepository.mockUser1)
+                } label: {
+                    Label(
+                        RegistryRepository.mockUser1.name,
+                        systemImage: registryRepository.currentUser.id == "user1" ? "checkmark.circle.fill" : "person.circle"
+                    )
+                }
+                
+                Button {
+                    switchActiveUser(to: RegistryRepository.mockUser2)
+                } label: {
+                    Label(
+                        RegistryRepository.mockUser2.name,
+                        systemImage: registryRepository.currentUser.id == "user2" ? "checkmark.circle.fill" : "person.circle"
+                    )
+                }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "person.circle")
+                    .font(.system(size: 15, weight: .semibold))
+                
+                Text(registryRepository.currentUser.id == "user1" ? "Alex" : "Taylor")
+                    .font(WSFont.caption(13))
+                    .fontWeight(.bold)
+                
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 7, weight: .bold))
+            }
+            .foregroundStyle(Color.wsNavy)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.wsBackground)
+            .clipShape(Capsule())
+            .overlay(Capsule().strokeBorder(Color.wsBorder, lineWidth: 1))
+        }
+    }
+
+    private func switchActiveUser(to user: RegistryRepository.MockUser) {
+        withAnimation(WSAnimation.spring) {
+            registryRepository.switchUser(to: user)
+            cartRepository.switchUser(toUserId: user.id)
+            wishlistRepository.switchUser(toUserId: user.id)
+        }
     }
 
     private func openProduct(_ product: ProductItem) {
@@ -275,6 +331,63 @@ struct HomeView: View {
             .padding(.horizontal, 16)
         }
     }
+    
+    private var trendingRecipesSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            WSSectionHeader(
+                title: "Trending Recipes",
+                subtitle: "Culinary inspiration for your registry"
+            )
+            .padding(.horizontal, 16)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(Recipe.allMocks) { recipe in
+                        Button {
+                            navigationPath.append(recipe)
+                        } label: {
+                            ZStack(alignment: .bottomLeading) {
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .fill(Color.wsSurface)
+                                    .overlay {
+                                        if let url = recipe.imageUrl {
+                                            CustomAsyncImage(url: url)
+                                                .scaledToFill()
+                                        }
+                                    }
+                                    .frame(width: 280, height: 180)
+                                    .clipped()
+                                
+                                WSGradient.heroOverlay
+                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("RECIPE")
+                                        .font(WSFont.caption(10))
+                                        .tracking(2)
+                                        .foregroundStyle(Color.white.opacity(0.9))
+                                    
+                                    Text(recipe.title)
+                                        .font(WSFont.heading(22))
+                                        .foregroundStyle(.white)
+                                        .lineLimit(2)
+                                }
+                                .padding(16)
+                            }
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .strokeBorder(WSGradient.cardStroke, lineWidth: 1)
+                            )
+                            .shadow(color: Color.black.opacity(0.05), radius: 8, y: 4)
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+        }
+    }
 
     private var curatedSection: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -413,27 +526,40 @@ private struct CuratedProductCard: View {
 
     var body: some View {
         Button(action: onSelect) {
-            VStack(alignment: .leading, spacing: 10) {
-                ZStack(alignment: .topLeading) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Image Section
+                ZStack(alignment: .topTrailing) {
                     CustomAsyncImage(url: product.imageURL)
-                        .frame(width: 186, height: 190)
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-
+                        .frame(height: 150)
+                        .clipped()
+                    
                     WSWishlistHeartButton(isActive: isWishlisted) {
                         withAnimation(WSAnimation.spring) {
                             wishlistRepository.toggle(product)
                         }
                     }
-                    .padding(8)
+                    .padding(10)
                 }
+                .frame(height: 150)
+                .frame(width: 170)
+                .clipShape(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 14,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 14,
+                        style: .continuous
+                    )
+                )
 
-                VStack(alignment: .leading, spacing: 6) {
+                // Info Section
+                VStack(alignment: .leading, spacing: 10) {
                     Text(product.title)
                         .font(WSFont.body(13))
                         .foregroundStyle(Color.wsNavy)
                         .lineLimit(2)
-                        .multilineTextAlignment(.leading)
                         .frame(minHeight: 36, alignment: .topLeading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
                     if let price = product.price {
                         Text(price, format: .currency(code: "USD"))
@@ -441,11 +567,10 @@ private struct CuratedProductCard: View {
                             .foregroundStyle(Color.wsAccent)
                     }
                 }
-                .padding(.horizontal, 6)
+                .padding(12)
+                .frame(width: 170)
             }
-            .padding(12)
-            .frame(width: 210, alignment: .leading)
-            .wsCard(cornerRadius: 14)
+            .wsCard()
         }
         .buttonStyle(ScaleButtonStyle())
     }
